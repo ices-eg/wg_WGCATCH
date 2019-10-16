@@ -1,0 +1,311 @@
+Stock	EG	Species	Spp	Country	DLS	IC_Aggreg	Landings	BMS	Discards																																
+spr.27.7de	HAWG	Sprat	Sprattus sprattus	Netherlands	DLS	Q	y	y	n																																
+spr.27.7de	HAWG	Sprat	Sprattus sprattus	UK - Northern Ireland	DLS	Q	y	y	n																																
+spr.27.7de	HAWG	Sprat	Sprattus sprattus	Denmark	DLS	Q	y	y	n																																
+spr.27.7de	HAWG	Sprat	Sprattus sprattus	France	DLS	Q	y	y	n																																
+spr.27.7de	HAWG	Sprat	Sprattus sprattus	UK-England & Wales	DLS	Q	y	y	n																																
+spr.27.3a	HAWG	Sprat	Sprattus sprattus	Denmark	DLS	Q	y	y	n																																
+spr.27.3a	HAWG	Sprat	Sprattus sprattus	Germany	DLS	Q	y	y	n																																
+spr.27.3a	HAWG	Sprat	Sprattus sprattus	Norway	DLS	Q	y	y	n																																
+spr.27.3a	HAWG	Sprat	Sprattus sprattus	Sweden	DLS	Q	y	y	n																																
+cod.27.1-2coast	AFWG	Cod	Gadus morhua	Norway	DLS	A	y	n	n																																
+cod.21.1	NWWG	Cod	Gadus morhua	Greenland	DLS	A	y	y	n																																
+cod.21.1a-e	NWWG	Cod	Gadus morhua	Greenland	DLS	Q	y	y	n																																
+cod.2127.1f14	NWWG	Cod	Gadus morhua	Greenland	DLS	Q	y	y	n																																
+cod.2127.1f14	NWWG	Cod	Gadus morhua	Iceland	DLS	Q	y	y	n																																
+cod.2127.1f14	NWWG	Cod	Gadus morhua	Norway	DLS	Q	y	y	n																																
+cod.2127.1f14	NWWG	Cod	Gadus morhua	Portugal	DLS	Q	y	y	n																																
+cod.2127.1f14	NWWG	Cod	Gadus morhua	Spain	DLS	Q	y	y	n																																
+cod.2127.1f14	NWWG	Cod	Gadus morhua	United Kingdom	DLS	Q	y	y	n																																
+reb.27.5a14	NWWG	Sebastes mentella	Sebastes mentella	Iceland	DLS	A	y	y	n																																
+reb.27.14b	NWWG	Sebastes mentella	Sebastes mentella	Iceland	DLS	A	y	y	n																																
+reb.27.14b	NWWG	Sebastes mentella	Sebastes mentella	Germany	DLS	A	y	y	n																																
+reb.27.14b	NWWG	Sebastes mentella	Sebastes mentella	Norway	DLS	A	y	y	n																																
+reb.27.14b	NWWG	Sebastes mentella	Sebastes mentella	Greenland	DLS	A	y	y	n																																
+reb.27.14b	NWWG	Sebastes mentella	Sebastes mentella	United Kingdom	DLS	A	y	y	n																																
+reb.27.14b	NWWG	Sebastes mentella	Sebastes mentella	Russia	DLS	A	y	y	n																																
+bll.27.22-32	WGBFAS	Brill	Scophthalmus rhombus	Denmark	DLS	Q	y	n	y																																
+bll.27.22-32	WGBFAS	Brill	Scophthalmus rhombus	Estonia	DLS	Q	y	n	y																																
+bll.27.22-32	WGBFAS	Brill	Scophthalmus rhombus	Finland	DLS	Q	y	n	y																																
+bll.27.22-32	WGBFAS	Brill	Scophthalmus rhombus	Germany	DLS	Q	y	n	y																																
+bll.27.22-32	WGBFAS	Brill	Scophthalmus rhombus	Lithuania	DLS	Q	y	n	y																																
+bll.27.22-32	WGBFAS	Brill	Scophthalmus rhombus	Sweden	DLS	Q	y	n	y																																
+cod.27.25-32	WGBFAS	Cod	Gadus morhua	Denmark	DLS	Q	y	y	y																																
+cod.27.25-32	WGBFAS	Cod	Gadus morhua	Estonia	DLS	Q	y	y	y																																
+cod.27.25-32	WGBFAS	Cod	Gadus morhua	Finland	DLS	Q	y	y	y																																
+cod.27.25-32	WGBFAS	Cod	Gadus morhua	Germany	DLS	Q	y	y	y																																
+cod.27.25-32	WGBFAS	Cod	Gadus morhua	Latvia	DLS	Q	y	y	y																																
+cod.27.25-32	WGBFAS	Cod	Gadus morhua	Lithuania	DLS	Q	y	y	y																																
+cod.27.25-32	WGBFAS	Cod	Gadus morhua	Poland	DLS	Q	y	y	y																																
+cod.27.25-32	WGBFAS	Cod	Gadus morhua	Russia	DLS	Q	y	y	y																																
+cod.27.25-32	WGBFAS	Cod	Gadus morhua	Sweden	DLS	Q	y	y	y																																
+cod.27.21	WGBFAS	Cod	Gadus morhua	Denmark	DLS	Q	y	y	y																																
+cod.27.21	WGBFAS	Cod	Gadus morhua	Germany	DLS	Q	y	y	y																																
+cod.27.21	WGBFAS	Cod	Gadus morhua	Sweden	DLS	Q	y	y	y																																
+dab.27.22-32	WGBFAS	Dab	Limanda limanda	Denmark	DLS	Q	y	n	y																																
+dab.27.22-32	WGBFAS	Dab	Limanda limanda	Estonia	DLS	Q	y	n	y																																
+dab.27.22-32	WGBFAS	Dab	Limanda limanda	Finland	DLS	Q	y	n	y																																
+dab.27.22-32	WGBFAS	Dab	Limanda limanda	Germany	DLS	Q	y	n	y																																
+dab.27.22-32	WGBFAS	Dab	Limanda limanda	Lithuania	DLS	Q	y	n	y																																
+dab.27.22-32	WGBFAS	Dab	Limanda limanda	Russia	DLS	Q	y	n	y																																
+dab.27.22-32	WGBFAS	Dab	Limanda limanda	Sweden	DLS	Q	y	n	y																																
+fle.27.2223	WGBFAS	Flounder	Platichthys flesus	Denmark	DLS	Q	y	n	y																																
+fle.27.2223	WGBFAS	Flounder	Platichthys flesus	Germany	DLS	Q	y	n	y																																
+fle.27.2223	WGBFAS	Flounder	Platichthys flesus	Sweden	DLS	Q	y	n	y																																
+fle.27.2425	WGBFAS	Flounder	Platichthys flesus	Denmark	DLS	Q	y	n	y																																
+fle.27.2425	WGBFAS	Flounder	Platichthys flesus	Estonia	DLS	Q	y	n	y																																
+fle.27.2425	WGBFAS	Flounder	Platichthys flesus	Finland	DLS	Q	y	n	y																																
+fle.27.2425	WGBFAS	Flounder	Platichthys flesus	Germany	DLS	Q	y	n	y																																
+fle.27.2425	WGBFAS	Flounder	Platichthys flesus	Latvia	DLS	Q	y	n	y																																
+fle.27.2425	WGBFAS	Flounder	Platichthys flesus	Lithuania	DLS	Q	y	n	y																																
+fle.27.2425	WGBFAS	Flounder	Platichthys flesus	Poland	DLS	Q	y	n	y																																
+fle.27.2425	WGBFAS	Flounder	Platichthys flesus	Russia	DLS	Q	y	n	y																																
+fle.27.2425	WGBFAS	Flounder	Platichthys flesus	Sweden	DLS	Q	y	n	y																																
+fle.27.2628	WGBFAS	Flounder	Platichthys flesus	Denmark	DLS	Q	y	n	y																																
+fle.27.2628	WGBFAS	Flounder	Platichthys flesus	Estonia	DLS	Q	y	n	y																																
+fle.27.2628	WGBFAS	Flounder	Platichthys flesus	Finland	DLS	Q	y	n	y																																
+fle.27.2628	WGBFAS	Flounder	Platichthys flesus	Germany	DLS	Q	y	n	y																																
+fle.27.2628	WGBFAS	Flounder	Platichthys flesus	Latvia	DLS	Q	y	n	y																																
+fle.27.2628	WGBFAS	Flounder	Platichthys flesus	Lithuania	DLS	Q	y	n	y																																
+fle.27.2628	WGBFAS	Flounder	Platichthys flesus	Poland	DLS	Q	y	n	y																																
+fle.27.2628	WGBFAS	Flounder	Platichthys flesus	Russia	DLS	Q	y	n	y																																
+fle.27.2628	WGBFAS	Flounder	Platichthys flesus	Sweden	DLS	Q	y	n	y																																
+fle.27.2729-32	WGBFAS	Flounder	Platichthys flesus	Denmark	DLS	Q	y	n	y																																
+fle.27.2729-32	WGBFAS	Flounder	Platichthys flesus	Estonia	DLS	Q	y	n	y																																
+fle.27.2729-32	WGBFAS	Flounder	Platichthys flesus	Finland	DLS	Q	y	n	y																																
+fle.27.2729-32	WGBFAS	Flounder	Platichthys flesus	Poland	DLS	Q	y	n	y																																
+fle.27.2729-32	WGBFAS	Flounder	Platichthys flesus	Russia	DLS	Q	y	n	y																																
+fle.27.2729-32	WGBFAS	Flounder	Platichthys flesus	Sweden	DLS	Q	y	n	y																																
+her.27.31	WGBFAS	Herring	Clupea harengus	Finland	DLS	Q	y	n	y																																
+her.27.31	WGBFAS	Herring	Clupea harengus	Sweden	DLS	Q	y	n	y																																
+ple.27.24-32	WGBFAS	Plaice	Pleuronectes platessa	Denmark	DLS	Q	y	n	y																																
+ple.27.24-32	WGBFAS	Plaice	Pleuronectes platessa	Estonia	DLS	Q	y	n	y																																
+ple.27.24-32	WGBFAS	Plaice	Pleuronectes platessa	Finland	DLS	Q	y	n	y																																
+ple.27.24-32	WGBFAS	Plaice	Pleuronectes platessa	Germany	DLS	Q	y	n	y																																
+ple.27.24-32	WGBFAS	Plaice	Pleuronectes platessa	Latvia	DLS	Q	y	n	y																																
+ple.27.24-32	WGBFAS	Plaice	Pleuronectes platessa	Lithuania	DLS	Q	y	n	y																																
+ple.27.24-32	WGBFAS	Plaice	Pleuronectes platessa	Poland	DLS	Q	y	n	y																																
+ple.27.24-32	WGBFAS	Plaice	Pleuronectes platessa	Russia	DLS	Q	y	n	y																																
+ple.27.24-32	WGBFAS	Plaice	Pleuronectes platessa	Sweden	DLS	Q	y	n	y																																
+tur.27.2232	WGBFAS	Turbot	Scophthalmus maximus	Denmark	DLS	Q	y	y	y																																
+tur.27.2232	WGBFAS	Turbot	Scophthalmus maximus	Estonia	DLS	Q	y	y	y																																
+tur.27.2232	WGBFAS	Turbot	Scophthalmus maximus	Germany	DLS	Q	y	y	y																																
+tur.27.2232	WGBFAS	Turbot	Scophthalmus maximus	Latvia	DLS	Q	y	y	y																																
+tur.27.2232	WGBFAS	Turbot	Scophthalmus maximus	Lithuania	DLS	Q	y	y	y																																
+tur.27.2232	WGBFAS	Turbot	Scophthalmus maximus	Poland	DLS	Q	y	y	y																																
+tur.27.2232	WGBFAS	Turbot	Scophthalmus maximus	Sweden	DLS	Q	y	y	y																																
+tur.27.2232	WGBFAS	Turbot	Scophthalmus maximus	Russia	DLS	Q	y	y	y																																
+tur.27.2232	WGBFAS	Turbot	Scophthalmus maximus	Finland	DLS	Q	y	y	y																																
+nep.fu.2829	WGBIE	Norway lobster	Nephrops norvegicus	Spain	DLS	A	y	n	y																																
+nep.fu.2829	WGBIE	Norway lobster	Nephrops norvegicus	Portugal	DLS	A	y	n	y																																
+nep.fu.30	WGBIE	Norway lobster	Nephrops norvegicus	Spain	DLS	A	y	n	y																																
+nep.fu.30	WGBIE	Norway lobster	Nephrops norvegicus	Portugal	DLS	A	y	n	y																																
+anf.27.3a46	WGCSE	Anglerfish	Lophiidae (Lophius budegassa + Lophius piscatorius)	Belgium	DLS	Q	y	n	y																																
+anf.27.3a46	WGCSE	Anglerfish	Lophiidae (Lophius budegassa + Lophius piscatorius)	Denmark	DLS	Q	y	n	y																																
+anf.27.3a46	WGCSE	Anglerfish	Lophiidae (Lophius budegassa + Lophius piscatorius)	France	DLS	Q	y	n	y																																
+anf.27.3a46	WGCSE	Anglerfish	Lophiidae (Lophius budegassa + Lophius piscatorius)	Germany	DLS	Q	y	n	y																																
+anf.27.3a46	WGCSE	Anglerfish	Lophiidae (Lophius budegassa + Lophius piscatorius)	Ireland	DLS	Q	y	n	y																																
+anf.27.3a46	WGCSE	Anglerfish	Lophiidae (Lophius budegassa + Lophius piscatorius)	Netherlands	DLS	Q	y	n	y																																
+anf.27.3a46	WGCSE	Anglerfish	Lophiidae (Lophius budegassa + Lophius piscatorius)	Norway	DLS	Q	y	n	y																																
+anf.27.3a46	WGCSE	Anglerfish	Lophiidae (Lophius budegassa + Lophius piscatorius)	Spain	DLS	Q	y	n	y																																
+anf.27.3a46	WGCSE	Anglerfish	Lophiidae (Lophius budegassa + Lophius piscatorius)	Sweden	DLS	Q	y	n	y																																
+anf.27.3a46	WGCSE	Anglerfish	Lophiidae (Lophius budegassa + Lophius piscatorius)	UK-England & Wales	DLS	Q	y	n	y																																
+anf.27.3a46	WGCSE	Anglerfish	Lophiidae (Lophius budegassa + Lophius piscatorius)	UK-Northern Ireland	DLS	Q	y	n	y																																
+anf.27.3a46	WGCSE	Anglerfish	Lophiidae (Lophius budegassa + Lophius piscatorius)	UK-Scotland	DLS	Q	y	n	y																																
+lez.27.6b	WGCSE	Megrim	Lepidorhombus	Ireland	DLS	Q	y	n	y																																
+lez.27.6b	WGCSE	Megrim	Lepidorhombus	UK-Scotland	DLS	Q	y	n	y																																
+ple.27.7h-k	WGCSE	Plaice	Pleuronectes platessa	Belgium	DLS	Q	y	n	y																																
+ple.27.7h-k	WGCSE	Plaice	Pleuronectes platessa	France	DLS	Q	y	n	y																																
+ple.27.7h-k	WGCSE	Plaice	Pleuronectes platessa	Ireland	DLS	Q	y	n	y																																
+ple.27.7h-k	WGCSE	Plaice	Pleuronectes platessa	UK-England & Wales	DLS	Q	y	n	y																																
+ple.27.7fg	WGCSE	Plaice	Pleuronectes platessa	Belgium	DLS	Q	y	n	y																																
+ple.27.7fg	WGCSE	Plaice	Pleuronectes platessa	France	DLS	Q	y	n	y																																
+ple.27.7fg	WGCSE	Plaice	Pleuronectes platessa	Ireland	DLS	Q	y	n	y																																
+ple.27.7fg	WGCSE	Plaice	Pleuronectes platessa	Netherlands	DLS	Q	y	n	y																																
+ple.27.7fg	WGCSE	Plaice	Pleuronectes platessa	UK-England & Wales	DLS	Q	y	n	y																																
+ple.27.7fg	WGCSE	Plaice	Pleuronectes platessa	UK-Northern Ireland	DLS	Q	y	n	y																																
+ple.27.7fg	WGCSE	Plaice	Pleuronectes platessa	UK-Scotland	DLS	Q	y	n	y																																
+ple.27.7e	WGCSE	Plaice	Pleuronectes platessa	Belgium	DLS	Q	y	n	y																																
+ple.27.7e	WGCSE	Plaice	Pleuronectes platessa	France	DLS	Q	y	n	y																																
+ple.27.7e	WGCSE	Plaice	Pleuronectes platessa	Ireland	DLS	Q	y	n	y																																
+ple.27.7e	WGCSE	Plaice	Pleuronectes platessa	Netherlands	DLS	Q	y	n	y																																
+ple.27.7e	WGCSE	Plaice	Pleuronectes platessa	UK-England & Wales	DLS	Q	y	n	y																																
+ple.27.7e	WGCSE	Plaice	Pleuronectes platessa	UK-Guernsey	DLS	Q	y	n	y																																
+ple.27.7e	WGCSE	Plaice	Pleuronectes platessa	UK-Jersey	DLS	Q	y	n	y																																
+ple.27.7e	WGCSE	Plaice	Pleuronectes platessa	UK-Scotland	DLS	Q	y	n	y																																
+ple.27.7a	WGCSE	Plaice	Pleuronectes platessa	Belgium	DLS	Q	y	n	y																																
+ple.27.7a	WGCSE	Plaice	Pleuronectes platessa	France	DLS	Q	y	n	y																																
+ple.27.7a	WGCSE	Plaice	Pleuronectes platessa	Ireland	DLS	Q	y	n	y																																
+ple.27.7a	WGCSE	Plaice	Pleuronectes platessa	UK-England & Wales	DLS	Q	y	n	y																																
+ple.27.7a	WGCSE	Plaice	Pleuronectes platessa	UK-Isle of Man	DLS	Q	y	n	y																																
+ple.27.7a	WGCSE	Plaice	Pleuronectes platessa	UK-Northern Ireland	DLS	Q	y	n	y																																
+ple.27.7a	WGCSE	Plaice	Pleuronectes platessa	UK-Scotland	DLS	Q	y	n	y																																
+pol.27.67	WGCSE	Pollack	Pollachius pollachius	Belgium	DLS	Q	y	n	y																																
+pol.27.67	WGCSE	Pollack	Pollachius pollachius	France	DLS	Q	y	n	y																																
+pol.27.67	WGCSE	Pollack	Pollachius pollachius	Ireland	DLS	Q	y	n	y																																
+pol.27.67	WGCSE	Pollack	Pollachius pollachius	Netherlands	DLS	Q	y	n	y																																
+pol.27.67	WGCSE	Pollack	Pollachius pollachius	UK-Northern Ireland	DLS	Q	y	n	y																																
+pol.27.67	WGCSE	Pollack	Pollachius pollachius	UK-Scotland	DLS	Q	y	n	y																																
+pol.27.67	WGCSE	Pollack	Pollachius pollachius	UK-Isle of Man	DLS	Q	y	n	y																																
+pol.27.67	WGCSE	Pollack	Pollachius pollachius	UK-England & Wales	DLS	Q	y	n	y																																
+pol.27.67	WGCSE	Pollack	Pollachius pollachius	UK-Guernsey	DLS	Q	y	n	y																																
+pol.27.67	WGCSE	Pollack	Pollachius pollachius	UK-Jersey	DLS	Q	y	n	y																																
+pol.27.67	WGCSE	Pollack	Pollachius pollachius	Spain	DLS	Q	y	n	y																																
+sol.27.7h-k	WGCSE	Sole	Solea solea	Belgium	DLS	Q	y	n	y																																
+sol.27.7h-k	WGCSE	Sole	Solea solea	France	DLS	Q	y	n	y																																
+sol.27.7h-k	WGCSE	Sole	Solea solea	Ireland	DLS	Q	y	n	y																																
+sol.27.7h-k	WGCSE	Sole	Solea solea	UK-England & Wales	DLS	Q	y	n	y																																
+aru.27.123a4	WGDEEP	Greater silver smelt	Argentina silus	Norway	DLS	A	y	n	y																																
+aru.27.5b6a	WGDEEP	Greater silver smelt	Argentina silus	Faroe Islands	DLS	A	y	n	y																																
+aru.27.5b6a	WGDEEP	Greater silver smelt	Argentina silus	Netherlands	DLS	Q	y	n	y																																
+aru.27.5b6a	WGDEEP	Greater silver smelt	Argentina silus	Spain	DLS	Q	y	n	y																																
+aru.27.5a14	WGDEEP	Greater silver smelt	Argentina silus	Iceland	DLS	A	y	n	y																																
+aru.27.5a14	WGDEEP	Greater silver smelt	Argentina silus	Greenland	DLS	A	y	n	y																																
+aru.27.6b7-1012	WGDEEP	Greater silver smelt	Argentina silus	Faroe Islands	DLS	Q	y	n	y																																
+aru.27.6b7-1012	WGDEEP	Greater silver smelt	Argentina silus	Netherlands	DLS	Q	y	n	y																																
+aru.27.6b7-1012	WGDEEP	Greater silver smelt	Argentina silus	Norway	DLS	Q	y	n	y																																
+aru.27.6b7-1012	WGDEEP	Greater silver smelt	Argentina silus	Spain	DLS	Q	y	n	y																																
+bli.27.5a14	WGDEEP	Blue ling	Molva dypterygia	Iceland	DLS	A	y	n	y																																
+bli.27.5a14	WGDEEP	Blue ling	Molva dypterygia	Faroe Islands	DLS	A	y	n	y																																
+bli.27.5a14	WGDEEP	Blue ling	Molva dypterygia	Norway	DLS	A	y	n	y																																
+bli.27.5a14	WGDEEP	Blue ling	Molva dypterygia	Germany	DLS	A	y	n	y																																
+bli.27.5a14	WGDEEP	Blue ling	Molva dypterygia	United Kingdom	DLS	A	y	n	y																																
+bli.27.5a14	WGDEEP	Blue ling	Molva dypterygia	Russia	DLS	A	y	n	y																																
+bli.27.5a14	WGDEEP	Blue ling	Molva dypterygia	Spain	DLS	A	y	n	y																																
+bli.27.5a14	WGDEEP	Blue ling	Molva dypterygia	Greenland	DLS	A	y	n	y																																
+bli.27.5a14	WGDEEP	Blue ling	Molva dypterygia	Denmark	DLS	A	y	n	y																																
+lin.27.1-2	WGDEEP	Ling	Molva molva	Faroe Islands	DLS	Q	y	n	y																																
+lin.27.1-2	WGDEEP	Ling	Molva molva	France	DLS	Q	y	n	y																																
+lin.27.1-2	WGDEEP	Ling	Molva molva	Germany	DLS	Q	y	n	y																																
+lin.27.1-2	WGDEEP	Ling	Molva molva	Iceland	DLS	Q	y	n	y																																
+lin.27.1-2	WGDEEP	Ling	Molva molva	Ireland	DLS	Q	y	n	y																																
+lin.27.1-2	WGDEEP	Ling	Molva molva	Norway	DLS	Q	y	n	y																																
+lin.27.1-2	WGDEEP	Ling	Molva molva	Russia	DLS	Q	y	n	y																																
+lin.27.1-2	WGDEEP	Ling	Molva molva	United Kingdom	DLS	Q	y	n	y																																
+lin.27.5b	WGDEEP	Ling	Molva molva	Greenland	DLS	Q	y	n	y																																
+lin.27.5b	WGDEEP	Ling	Molva molva	Faroe Islands	DLS	A	y	n	y																																
+lin.27.5b	WGDEEP	Ling	Molva molva	France	DLS	Q	y	n	y																																
+lin.27.5b	WGDEEP	Ling	Molva molva	Norway	DLS	Q	y	n	y																																
+lin.27.5b	WGDEEP	Ling	Molva molva	UK-Scotland	DLS	Q	y	n	y																																
+lin.27.3a4a6-91214	WGDEEP	Ling	Molva molva	Denmark	DLS	Q	y	n	y																																
+lin.27.3a4a6-91214	WGDEEP	Ling	Molva molva	France	DLS	Q	y	n	y																																
+lin.27.3a4a6-91214	WGDEEP	Ling	Molva molva	United Kingdom	DLS	Q	y	n	y																																
+lin.27.3a4a6-91214	WGDEEP	Ling	Molva molva	Ireland	DLS	Q	y	n	y																																
+lin.27.3a4a6-91214	WGDEEP	Ling	Molva molva	Spain	DLS	Q	y	n	y																																
+lin.27.3a4a6-91214	WGDEEP	Ling	Molva molva	Portugal	DLS	Q	y	n	y																																
+lin.27.3a4a6-91214	WGDEEP	Ling	Molva molva	Norway	DLS	Q	y	n	y																																
+usk.27.1-2	WGDEEP	Tusk	Brosme brosme	Norway	DLS	Q	y	n	y																																
+usk.27.1-2	WGDEEP	Tusk	Brosme brosme	Russia	DLS	Q	y	n	y																																
+usk.27.1-2	WGDEEP	Tusk	Brosme brosme	Faroe Islands	DLS	Q	y	n	y																																
+usk.27.3a45b6a7-912b	WGDEEP	Tusk	Brosme brosme	Denmark	DLS	Q	y	n	y																																
+usk.27.3a45b6a7-912b	WGDEEP	Tusk	Brosme brosme	Faroe Islands	DLS	Q	y	n	y																																
+usk.27.3a45b6a7-912b	WGDEEP	Tusk	Brosme brosme	France	DLS	Q	y	n	y																																
+usk.27.3a45b6a7-912b	WGDEEP	Tusk	Brosme brosme	Greenland	DLS	Q	y	n	y																																
+usk.27.3a45b6a7-912b	WGDEEP	Tusk	Brosme brosme	Ireland	DLS	Q	y	n	y																																
+usk.27.3a45b6a7-912b	WGDEEP	Tusk	Brosme brosme	Norway	DLS	Q	y	n	y																																
+usk.27.3a45b6a7-912b	WGDEEP	Tusk	Brosme brosme	Russia	DLS	Q	y	n	y																																
+usk.27.3a45b6a7-912b	WGDEEP	Tusk	Brosme brosme	Spain	DLS	Q	y	n	y																																
+usk.27.3a45b6a7-912b	WGDEEP	Tusk	Brosme brosme	Sweden	DLS	Q	y	n	y																																
+usk.27.3a45b6a7-912b	WGDEEP	Tusk	Brosme brosme	United Kingdom	DLS	Q	y	n	y																																
+pil.27.78abd	WGHANSA	sardine	Sardina pilchardus	France	DLS	Q	y	n	y																																
+pil.27.78abd	WGHANSA	sardine	Sardina pilchardus	Ireland	DLS	Q	y	n	y																																
+pil.27.78abd	WGHANSA	sardine	Sardina pilchardus	Netherlands	DLS	Q	y	n	y																																
+pil.27.78abd	WGHANSA	sardine	Sardina pilchardus	Spain	DLS	Q	y	n	y																																
+pil.27.78abd	WGHANSA	sardine	Sardina pilchardus	UK	DLS	Q	y	n	y																																
+bll.27.3a47de	WGNSSK	Brill	Scophthalmus rhombus	Belgium	DLS	Q	y	n	y																																
+bll.27.3a47de	WGNSSK	Brill	Scophthalmus rhombus	Denmark	DLS	Q	y	n	y																																
+bll.27.3a47de	WGNSSK	Brill	Scophthalmus rhombus	France	DLS	Q	y	n	y																																
+bll.27.3a47de	WGNSSK	Brill	Scophthalmus rhombus	Germany	DLS	Q	y	n	y																																
+bll.27.3a47de	WGNSSK	Brill	Scophthalmus rhombus	Ireland	DLS	Q	y	n	y																																
+bll.27.3a47de	WGNSSK	Brill	Scophthalmus rhombus	Netherlands	DLS	Q	y	n	y																																
+bll.27.3a47de	WGNSSK	Brill	Scophthalmus rhombus	Sweden	DLS	Q	y	n	y																																
+bll.27.3a47de	WGNSSK	Brill	Scophthalmus rhombus	United Kingdom	DLS	Q	y	n	y																																
+dab.27.3a4	WGNSSK	Dab	Limanda limanda	Belgium	DLS	Q	y	n	y																																
+dab.27.3a4	WGNSSK	Dab	Limanda limanda	Denmark	DLS	Q	y	n	y																																
+dab.27.3a4	WGNSSK	Dab	Limanda limanda	Germany	DLS	Q	y	n	y																																
+dab.27.3a4	WGNSSK	Dab	Limanda limanda	Netherlands	DLS	Q	y	n	y																																
+dab.27.3a4	WGNSSK	Dab	Limanda limanda	France	DLS	Q	y	n	y																																
+dab.27.3a4	WGNSSK	Dab	Limanda limanda	Sweden	DLS	Q	y	n	y																																
+dab.27.3a4	WGNSSK	Dab	Limanda limanda	UK-Scotland	DLS	Q	y	n	y																																
+dab.27.3a4	WGNSSK	Dab	Limanda limanda	UK EW	DLS	Q	y	n	y																																
+fle.27.3a4	WGNSSK	Flounder	Platichthys flesus	Belgium	DLS	Q	y	n	y																																
+fle.27.3a4	WGNSSK	Flounder	Platichthys flesus	Denmark	DLS	Q	y	n	y																																
+fle.27.3a4	WGNSSK	Flounder	Platichthys flesus	France	DLS	Q	y	n	y																																
+fle.27.3a4	WGNSSK	Flounder	Platichthys flesus	Germany	DLS	Q	y	n	y																																
+fle.27.3a4	WGNSSK	Flounder	Platichthys flesus	Ireland	DLS	Q	y	n	y																																
+fle.27.3a4	WGNSSK	Flounder	Platichthys flesus	Netherlands	DLS	Q	y	n	y																																
+fle.27.3a4	WGNSSK	Flounder	Platichthys flesus	Spain	DLS	Q	y	n	y																																
+fle.27.3a4	WGNSSK	Flounder	Platichthys flesus	Sweden	DLS	Q	y	n	y																																
+fle.27.3a4	WGNSSK	Flounder	Platichthys flesus	United Kingdom	DLS	Q	y	n	y																																
+lem.27.3a47d	WGNSSK	Lemon sole	Microstomus kitt	Germany	DLS	Q	y	n	y																																
+lem.27.3a47d	WGNSSK	Lemon sole	Microstomus kitt	Belgium	DLS	Q	y	n	y																																
+lem.27.3a47d	WGNSSK	Lemon sole	Microstomus kitt	Denmark	DLS	Q	y	n	y																																
+lem.27.3a47d	WGNSSK	Lemon sole	Microstomus kitt	France	DLS	Q	y	n	y																																
+lem.27.3a47d	WGNSSK	Lemon sole	Microstomus kitt	Netherlands	DLS	Q	y	n	y																																
+lem.27.3a47d	WGNSSK	Lemon sole	Microstomus kitt	Norway	DLS	Q	y	n	y																																
+lem.27.3a47d	WGNSSK	Lemon sole	Microstomus kitt	Sweden	DLS	Q	y	n	y																																
+lem.27.3a47d	WGNSSK	Lemon sole	Microstomus kitt	UK	DLS	Q	y	n	y																																
+mur.27.3a47d	WGNSSK	Striped red mullet	Mullus surmuletus	Netherlands	DLS	Q	y	n	y																																
+mur.27.3a47d	WGNSSK	Striped red mullet	Mullus surmuletus	Belgium	DLS	Q	y	n	y																																
+mur.27.3a47d	WGNSSK	Striped red mullet	Mullus surmuletus	Denmark	DLS	Q	y	n	y																																
+mur.27.3a47d	WGNSSK	Striped red mullet	Mullus surmuletus	Germany	DLS	Q	y	n	y																																
+mur.27.3a47d	WGNSSK	Striped red mullet	Mullus surmuletus	France	DLS	Q	y	n	y																																
+mur.27.3a47d	WGNSSK	Striped red mullet	Mullus surmuletus	Norway	DLS	Q	y	n	y																																
+mur.27.3a47d	WGNSSK	Striped red mullet	Mullus surmuletus	UK	DLS	Q	y	n	y																																
+nep.fu.32	WGNSSK	Norway lobster	Nephrops norvegicus	Netherlands	DLS	Q	y	n	y																																
+nep.fu.32	WGNSSK	Norway lobster	Nephrops norvegicus	Denmark	DLS	Q	y	n	y																																
+nep.fu.32	WGNSSK	Norway lobster	Nephrops norvegicus	Norway	DLS	Q	y	n	y																																
+nep.fu.32	WGNSSK	Norway lobster	Nephrops norvegicus	Sweden	DLS	Q	y	n	y																																
+nep.fu.32	WGNSSK	Norway lobster	Nephrops norvegicus	UK	DLS	Q	y	n	y																																
+tur.27.3a	WGNSSK	Turbot	Scophthalmus maximus	Belgium	DLS	Q	y	n	y																																
+tur.27.3a	WGNSSK	Turbot	Scophthalmus maximus	Denmark	DLS	Q	y	n	y																																
+tur.27.3a	WGNSSK	Turbot	Scophthalmus maximus	Germany	DLS	Q	y	n	y																																
+tur.27.3a	WGNSSK	Turbot	Scophthalmus maximus	Netherlands	DLS	Q	y	n	y																																
+tur.27.3a	WGNSSK	Turbot	Scophthalmus maximus	Norway	DLS	Q	y	n	y																																
+tur.27.3a	WGNSSK	Turbot	Scophthalmus maximus	Sweden	DLS	Q	y	n	y																																
+tur.27.3a	WGNSSK	Turbot	Scophthalmus maximus	UK	DLS	Q	y	n	y																																
+tur.27.4	WGNSSK	Turbot	Scophthalmus maximus	Belgium	DLS	Q	y	n	y																																
+tur.27.4	WGNSSK	Turbot	Scophthalmus maximus	Denmark	DLS	Q	y	n	y																																
+tur.27.4	WGNSSK	Turbot	Scophthalmus maximus	France	DLS	Q	y	n	y																																
+tur.27.4	WGNSSK	Turbot	Scophthalmus maximus	Germany	DLS	Q	y	n	y																																
+tur.27.4	WGNSSK	Turbot	Scophthalmus maximus	Netherlands	DLS	Q	y	n	y																																
+tur.27.4	WGNSSK	Turbot	Scophthalmus maximus	Norway	DLS	Q	y	n	y																																
+tur.27.4	WGNSSK	Turbot	Scophthalmus maximus	UK	DLS	Q	y	n	y																																
+wit.27.3a47d	WGNSSK	Witch	Glyptocephalus cynoglossus	Belgium	DLS	Q	y	n	y																																
+wit.27.3a47d	WGNSSK	Witch	Glyptocephalus cynoglossus	Denmark	DLS	Q	y	n	y																																
+wit.27.3a47d	WGNSSK	Witch	Glyptocephalus cynoglossus	France	DLS	Q	y	n	y																																
+wit.27.3a47d	WGNSSK	Witch	Glyptocephalus cynoglossus	Germany	DLS	Q	y	n	y																																
+wit.27.3a47d	WGNSSK	Witch	Glyptocephalus cynoglossus	Netherlands	DLS	Q	y	n	y																																
+wit.27.3a47d	WGNSSK	Witch	Glyptocephalus cynoglossus	Norway	DLS	Q	y	n	y																																
+wit.27.3a47d	WGNSSK	Witch	Glyptocephalus cynoglossus	Sweden	DLS	Q	y	n	y																																
+wit.27.3a47d	WGNSSK	Witch	Glyptocephalus cynoglossus	UK-England & Wales	DLS	Q	y	n	y																																
+wit.27.3a47d	WGNSSK	Witch	Glyptocephalus cynoglossus	UK-England & Wales	DLS	Q	y	n	y																																
+wit.27.3a47d	WGNSSK	Witch	Glyptocephalus cynoglossus	UK-Scotland	DLS	Q	y	n	y																																
+boc.27.6-8	WGWIDE	Boarfish	Capros aper	Denmark	DLS	Q	y	y	y																																
+boc.27.6-8	WGWIDE	Boarfish	Capros aper	Ireland	DLS	Q	y	y	y																																
+boc.27.6-8	WGWIDE	Boarfish	Capros aper	UK-Northern Ireland	DLS	Q	y	y	y																																
+boc.27.6-8	WGWIDE	Boarfish	Capros aper	UK-Scotland	DLS	Q	y	y	y																																
+boc.27.6-8	WGWIDE	Boarfish	Capros aper	UK-England & Wales	DLS	Q	y	y	y																																
+boc.27.6-8	WGWIDE	Boarfish	Capros aper	Germany	DLS	Q	y	y	y																																
+boc.27.6-8	WGWIDE	Boarfish	Capros aper	Netherlands	DLS	Q	y	y	y																																
+boc.27.6-8	WGWIDE	Boarfish	Capros aper	Portugal	DLS	Q	y	y	y																																
+boc.27.6-8	WGWIDE	Boarfish	Capros aper	Spain	DLS	Q	y	y	y																																
+hom.27.3a4bc7d	WGWIDE	Horse mackerel	Trachurus trachurus	Germany	DLS	Q	y	y	y																																
+hom.27.3a4bc7d	WGWIDE	Horse mackerel	Trachurus trachurus	UK-England & Wales	DLS	Q	y	y	y																																
+hom.27.3a4bc7d	WGWIDE	Horse mackerel	Trachurus trachurus	UK-Scotland	DLS	Q	y	y	y																																
+hom.27.3a4bc7d	WGWIDE	Horse mackerel	Trachurus trachurus	Belgium	DLS	Q	y	y	y																																
+hom.27.3a4bc7d	WGWIDE	Horse mackerel	Trachurus trachurus	Norway	DLS	Q	y	y	y																																
+hom.27.3a4bc7d	WGWIDE	Horse mackerel	Trachurus trachurus	France	DLS	Q	y	y	y																																
+hom.27.3a4bc7d	WGWIDE	Horse mackerel	Trachurus trachurus	Denmark	DLS	Q	y	y	y																																
+hom.27.3a4bc7d	WGWIDE	Horse mackerel	Trachurus trachurus	Netherlands	DLS	Q	y	y	y																																
+rjc.27.3a47d	WGEF	Thornback ray	Raja clavata	Several	DLS	A	y	n	y																																
+rjn.27.3a4	WGEF	Cuckoo ray	Leucoraja naevus	Several	DLS	A	y	n	y																																
+rjh.27.4c7d	WGEF	Blonde ray	Raja brachyura	Several	DLS	A	y	n	y																																
+rjh.27.4a6	WGEF	Blonde ray	Raja brachyura	Several	DLS	A	y	n	y																																
+rjm.27.3a47d	WGEF	Spotted ray	Raja montagui	Several	DLS	A	y	n	y																																
+sdv.27.nea	WGEF	Smooth-hound	Mustelus spp.	Several	DLS	A	y	n	y																																
+syc.27.8c9a	WGEF	Lesser-spotted dogfish	Scyliorhinus canicula	Several	DLS	A	y	n	y																																
+syc.27.8abd	WGEF	Lesser-spotted dogfish	Scyliorhinus canicula	Several	DLS	A	y	n	y																																
+syc.27.67a-ce-j	WGEF	Lesser-spotted dogfish	Scyliorhinus canicula	Several	DLS	A	y	n	y																																
+syt.27.67	WGEF	Greater-spotted dogfish	Scyliorhinus stellaris	Several	DLS	A	y	n	y																																
+syc.27.3a47d	WGEF	Lesser-spotted dogfish	Scyliorhinus canicula	Several	DLS	A	y	n	y																																
