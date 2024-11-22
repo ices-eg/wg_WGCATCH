@@ -45,6 +45,8 @@ qDataVessels[CountryArea == "FRA/France",CountryArea:="FRA"]
 qDataVessels[CountryArea == "ES_IEO",CountryArea:="ESP_IEO"]
 qDataVessels[CountryArea == "PRT/Portugal" & GeoIndicator == "P3",
       CountryArea:="PRT_Azores"]
+qDataVessels[CountryArea == "NL",CountryArea:="NLD"]
+qDataVessels[CountryArea == "SCO/Scotland",CountryArea:="SCO"]
 table(qDataVessels$CountryArea)
 qDataVessels[,Country:=substr(CountryArea,1,3)]
 table(qDataVessels$Country, useNA = "ifany")
@@ -53,7 +55,7 @@ table(qDataVessels$Country, useNA = "ifany")
 table(qDataVessels$SupraRegionArea, useNA = "ifany")
 qDataVessels[SupraRegionArea %in% c("AREA27","Baltic Sea","FAO area 27","ICES","NAO",
                          "NAO, all Areas (not Baltic Sea)","NAO, Area 27 (not Baltic Sea)",
-                         "NOR","27"),
+                         "NOR","27","FAO Area 27"),
       SupraRegion:="NAO"]
 qDataVessels[SupraRegionArea %in% c("MBS"),
       SupraRegion:="MBS"]
@@ -80,7 +82,7 @@ qDataVessels[VesselLengthRange %in% c("[15-18[m","15-18"),VesselLengthRange:="15
 qDataVessels[VesselLengthRange %in% c("[18-24[m","18-24"),VesselLengthRange:="18-24m"]
 qDataVessels[VesselLengthRange %in% c("[24-40[m","24-40"),VesselLengthRange:="24-40m"]
 qDataVessels[VesselLengthRange %in% c(">=40m"),VesselLengthRange:="40m and more"]
-table(qDataVessels$VesselLengthRange)
+table(qDataVessels$VesselLengthRange, useNA = "ifany")
 
 # Number of vessels check
 dataToPlot<-qDataVessels[,.(NumberOfRegisteredVessels=sum(NumberOfRegisteredVessels, na.rm = T),
@@ -109,6 +111,8 @@ qDataTrips[CountryArea == "LTU/Lithuania",CountryArea:="LTU"]
 qDataTrips[CountryArea == "FRA/France",CountryArea:="FRA"]
 qDataTrips[CountryArea == "PRT/Portugal" & GeoIndicator == "P3",
              CountryArea:="PRT_Azores"]
+qDataTrips[CountryArea == "NL",CountryArea:="NLD"]
+qDataTrips[CountryArea == "SCO/Scotland",CountryArea:="SCO"]
 table(qDataTrips$CountryArea, useNA = "ifany")
 qDataTrips[,Country:=substr(CountryArea,1,3)]
 table(qDataTrips$Country, useNA = "ifany")
@@ -117,7 +121,7 @@ table(qDataTrips$Country, useNA = "ifany")
 table(qDataTrips$SupraRegionArea, useNA = "ifany")
 qDataTrips[SupraRegionArea %in% c("AREA27","Baltic Sea","FAO area 27","ICES","NAO",
                                     "NAO, all Areas (not Baltic Sea)","NAO, Area 27 (not Baltic Sea)",
-                                  "27","FAO27"),
+                                  "27","FAO27","FAO Area 27"),
              SupraRegion:="NAO"]
 qDataTrips[SupraRegionArea %in% c("MBS"),
              SupraRegion:="MBS"]
@@ -170,6 +174,7 @@ table1 <- qDataVessels
 table1$CountryName <- countrycode(table1$Country,origin = "iso3c",
                                   destination = "country.name")
 table1[Country=="GBE", CountryName:="England"]
+table1[Country=="SCO", CountryName:="Scotland"]
 table(table1$CountryName,useNA = "ifany")
 table1$Year<-2023
 table1$YearMax <- "OUI"
@@ -214,11 +219,14 @@ table1 <- table1[,.(CountryName, Country, SupraRegion, SupraRegion,
                     VesselLengthRange, NumberOfRegisteredVessels,
                     NumberOfActiveVessels, ScientificEstimates,LSF)]
 table1$Year <- as.numeric(table1$Year)
+table1 <- table1[NumberOfRegisteredVessels != 0 |
+                   NumberOfActiveVessels != 0]
 
 table2 <- qDataTrips
 table2$CountryName <- countrycode(table2$Country,origin = "iso3c",
                                   destination = "country.name")
 table2[Country=="GBE", CountryName:="England"]
+table2[Country=="SCO", CountryName:="Scotland"]
 table2$Year<-2023
 table2$YearMax <- "OUI"
 table2[,LSF:=ifelse(VesselLengthRange %in% c("12-15m","15-18m","18-24m",
@@ -266,6 +274,7 @@ table2 <- table2[,.(CountryName, Country, SupraRegion, SupraRegion,
                     ICESregion, CountryAreaId, Year, YearMax, 
                     VesselLengthRange, NumberOfTripsRange,
                     NumberOfVessels, ScientificEstimates,LSF)]
+table2 <- table2[NumberOfVessels!=0]
 
 wb<-createWorkbook("WGCATCH_2024")
 addWorksheet(wb,"Sheet1")

@@ -3,13 +3,15 @@ library(data.table)
 library(ggplot2)
 options(scipen=999)
 
-work.directory<-"C:/Sébastien/Dossiers_courant/_WGCATCH_20151105/2020/Questionnaires/Questionnaires_WGCATCH_2020_meeting/Analysis_2020"
-setwd(work.directory)
-getwd()
+rm(list = ls())
+gc()
+
+data.path <- "ToRb/data_combined/"
+result.path <- "ToRb/results/"
 
 #Load the tables
-table2<-read_xlsx("SSF_Overwiev_tables_2018_2020_withGreeceEstimated_VF.xlsx",sheet="Sheet1")
-table3<-read_xlsx("SSF_Overwiev_tables_2018_2020_withGreeceEstimated_VF.xlsx",sheet="Sheet2")
+table2<-read_xlsx(paste0(data.path,"WGCATCH_2024_data.xlsx"),sheet="Sheet1")
+table3<-read_xlsx(paste0(data.path,"WGCATCH_2024_data.xlsx"),sheet="Sheet2")
 head(table2)
 head(table3)
 
@@ -183,7 +185,7 @@ table5<-dcast(table4, Country_area+Scientific_estimates+LSF~Id, value.var = "nb.
 head(table5)
 #table5[is.na(table5)]<-0
 getwd()
-write.csv(table5,"No_of_vessels.csv",row.names = FALSE)
+write.csv(table5,paste0(result.path,"No_of_vessels.csv"),row.names = FALSE)
 
 table4<-table3F[,.(Country_area,Scientific_estimates,LSF,Id,perc)]
 head(table4)
@@ -252,7 +254,7 @@ colnames(table5) <- c("Country_area","Scientific_estimates","LSF","CL1_1-9","CL1
 colnames(table5)
 dim(table5)
 getwd()
-write.csv(table5,"Perc_of_vessels.csv",row.names = FALSE)
+write.csv(table5,paste0(result.path,"Perc_of_vessels.csv"),row.names = FALSE)
 
 #Calculate the number of active vessels from table2 and insert into table3
 test<-table2
@@ -333,7 +335,7 @@ table5<-dcast(table4, Year+Country_area+Year_max+Scientific_estimates+LSF~Id, va
 head(table5)
 #table5[is.na(table5)]<-0
 getwd()
-write.csv(table5,"No_of_vessels_complet.csv",row.names = FALSE)
+write.csv(table5,paste0(result.path,"No_of_vessels_complet.csv"),row.names = FALSE)
 
 table4<-table3[,.(Year,Country_area,Year_max,Scientific_estimates,LSF,Id,perc)]
 head(table4)
@@ -402,10 +404,10 @@ colnames(table5) <- c("Year","Country_area","Year_max","Scientific_estimates","L
 colnames(table5)
 dim(table5)
 getwd()
-write.csv(table5,"Perc_of_vessels_complet.csv",row.names = FALSE)
+write.csv(table5,paste0(result.path,"Perc_of_vessels_complet.csv"),row.names = FALSE)
 
 
-### Fichier "Perc_of_vessels_complet.csv" table à utilisé dans les ACPs ####
+### Fichier "Perc_of_vessels_complet.csv" table ? utilis? dans les ACPs ####
 
 # https://thinkr.fr/pdf/ggplot2-french-cheatsheet.pdf
 
@@ -440,10 +442,10 @@ p<-ggplot(ot,aes(fill=variable,y=value,x=Country_area))+
        x = "Country_area", 
        y = "Number of vessels",
        fill="")
-fname <- paste0("Declarative_vs_Registered_SSFVes_nb_by_cou",".png")
+fname <- paste0(result.path,"Declarative_vs_Registered_SSFVes_nb_by_cou",".png")
 ggsave(filename=fname, plot=p, width=10, height = 5)
 
-p<-ggplot(ot[!(ot$Country_area %in% c("GRC_SSF_GSA22_2019","GRC_SSF_GSA22_2019sc","NOR_SSF_27_2017","PRT_SSF_27_2019")),],aes(fill=variable,y=value,x=Country_area))+
+p<-ggplot(ot[!(ot$Country_area %in% c("GRC_SSF_MBS_NGI_2023","GRC_SSF_GSA22_2019sc","NOR_SSF_27_2017","PRT_SSF_27_2019")),],aes(fill=variable,y=value,x=Country_area))+
   geom_bar(stat="identity",position="dodge")+
   scale_fill_brewer(palette="Set1")+
   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))+
@@ -454,7 +456,7 @@ p<-ggplot(ot[!(ot$Country_area %in% c("GRC_SSF_GSA22_2019","GRC_SSF_GSA22_2019sc
        x = "Country_area", 
        y = "Number of vessels",
        fill="")
-fname <- paste0("Declarative_vs_Registered_SSFVes_nb_by_cou2",".png")
+fname <- paste0(result.path,"Declarative_vs_Registered_SSFVes_nb_by_cou2",".png")
 ggsave(filename=fname, plot=p, width=10, height = 5)
 
 sum(inter$Registered.vessels)
@@ -478,7 +480,7 @@ head(stats)
 # fname <- paste0("Declarative_vs_Registered_SSFVes_nb_by_cou1",".png")
 # ggsave(filename=fname, plot=p, width=10, height = 5)
 
-### Mémes graphiques pour les LSF - non mis dans le rapport mais construit au cas où ...
+### M?mes graphiques pour les LSF - non mis dans le rapport mais construit au cas o? ...
 inter<-table2F
 table(inter$LSF)
 inter <- inter[inter$LSF %in% c("OUI"),]
@@ -503,7 +505,7 @@ p<-ggplot(ot,aes(fill=variable,y=value,x=Country_area))+
        x = "Country_area", 
        y = "Number of vessels",
        fill="")
-fname <- paste0("Declarative_vs_Registered_LSFVes_nb_by_cou",".png")
+fname <- paste0(result.path,"Declarative_vs_Registered_LSFVes_nb_by_cou",".png")
 ggsave(filename=fname, plot=p, width=10, height = 5)
 
 # p<-ggplot(ot[!(ot$Country_area %in% c("NOR_LSF_27_2017")),],aes(fill=variable,y=value,x=Country_area))+
@@ -560,7 +562,7 @@ p<-ggplot(ot, aes(fill=factor(Vessel.length.range,levels), y=value, x=Country_ar
        x = "Country",
        y = "% of vessels",
        fill="Vessel length range")
-fname <- paste0("Declarative_vs_Registered_SSFVes_perc_by_cou+loa",".png")
+fname <- paste0(result.path,"Declarative_vs_Registered_SSFVes_perc_by_cou+loa",".png")
 ggsave(filename=fname, plot=p, width=10, height = 5)
 
 inter<-table2F
@@ -601,7 +603,7 @@ p<-ggplot(ot, aes(fill=factor(Vessel.length.range,levels), y=value, x=Country_ar
        x = "Country",
        y = "% of vessels",
        fill="Vessel length range")
-fname <- paste0("Declarative_vs_Registered_LSFVes_perc_by_cou+loa",".png")
+fname <- paste0(result.path,"Declarative_vs_Registered_LSFVes_perc_by_cou+loa",".png")
 ggsave(filename=fname, plot=p, width=10, height = 5)
 
 inter<-table2F
@@ -611,44 +613,44 @@ table(inter$LSF)
 
 table(inter[inter$Scientific_estimates %in% c("OUI"),]$Country_area)
 table(inter$Scientific_estimates)
-inter <- inter[inter$Country_area %in% c("FRA_SSF_GSA7_2019sc","FRA_SSF_GSA7_2019","FRA_SSF_GSA8_2019sc","FRA_SSF_GSA8_2019",
-                                         "FRG_SSF_31_2019sc","FRG_SSF_31_2019","FRG_SSF_3141_2019sc","FRG_SSF_3141_2019",
-                                         "FRM_SSF_31_2019sc","FRM_SSF_31_2019","FRM_SSF_51_2019sc","FRM_SSF_51_2019",
-                                         "FRR_SSF_51_2019sc","FRR_SSF_51_2019","GRC_SSF_GSA22_2019sc","GRC_SSF_GSA22_2019"),]
-table(inter$Scientific_estimates)
-head(inter)
-
-ot<-inter[,.(Registered.vessels=sum(Registered.vessels,na.rm = T),Active.vessels=sum(Active.vessels,na.rm = T)),
-          by=.(Country_area,Vessel.length.range)]
-
-test<-table2F[,.(nb.vessels=sum(Registered.vessels,na.rm = T)),
-              by=.(Country_area)]
-head(test)
-dim(ot)
-ot<-merge(ot,test,by=c("Country_area"))
-dim(ot)
-head(ot)
-ot$perc.Registered.vessels <- (ot$Registered.vessels/ot$nb.vessels)*100
-ot$perc.Declarative.data.vessels <- (ot$Active.vessels/ot$nb.vessels)*100
-head(ot)
-
-ot<-melt(ot, id=c("Country_area", "Vessel.length.range"), measure=c("perc.Registered.vessels", "perc.Declarative.data.vessels"))
-levels<-sort(unique(ot$Vessel.length.range),decreasing = T)
-
-p<-ggplot(ot, aes(fill=factor(Vessel.length.range,levels), y=value, x=Country_area)) +
-  geom_bar(stat="identity", width = 0.75, position="stack")+
-  scale_fill_brewer(palette="Set1")+
-  facet_grid(.~variable)+
-  theme(axis.text.x = element_text(angle = 90, hjust = 0.5, vjust = 0.5))+
-  theme(plot.title = element_text(hjust = 0.5))+
-  labs(title = paste("Percentage of LSF vessels (>=12m) by country*area (incl. scientific estimates) and vessel length range",
-                     "\n",
-                     "(declarative data vessels vs registered)"),
-       x = "Country",
-       y = "% of vessels",
-       fill="Vessel length range")
-fname <- paste0("Declarative_vs_Registered_SSFVes_scientific_perc_by_cou+loa",".png")
-ggsave(filename=fname, plot=p, width=10, height = 5)
+# inter <- inter[inter$Country_area %in% c("FRA_SSF_GSA7_2019sc","FRA_SSF_GSA7_2019","FRA_SSF_GSA8_2019sc","FRA_SSF_GSA8_2019",
+#                                          "FRG_SSF_31_2019sc","FRG_SSF_31_2019","FRG_SSF_3141_2019sc","FRG_SSF_3141_2019",
+#                                          "FRM_SSF_31_2019sc","FRM_SSF_31_2019","FRM_SSF_51_2019sc","FRM_SSF_51_2019",
+#                                          "FRR_SSF_51_2019sc","FRR_SSF_51_2019","GRC_SSF_GSA22_2019sc","GRC_SSF_GSA22_2019"),]
+# table(inter$Scientific_estimates)
+# head(inter)
+# 
+# ot<-inter[,.(Registered.vessels=sum(Registered.vessels,na.rm = T),Active.vessels=sum(Active.vessels,na.rm = T)),
+#           by=.(Country_area,Vessel.length.range)]
+# 
+# test<-table2F[,.(nb.vessels=sum(Registered.vessels,na.rm = T)),
+#               by=.(Country_area)]
+# head(test)
+# dim(ot)
+# ot<-merge(ot,test,by=c("Country_area"))
+# dim(ot)
+# head(ot)
+# ot$perc.Registered.vessels <- (ot$Registered.vessels/ot$nb.vessels)*100
+# ot$perc.Declarative.data.vessels <- (ot$Active.vessels/ot$nb.vessels)*100
+# head(ot)
+# 
+# ot<-melt(ot, id=c("Country_area", "Vessel.length.range"), measure=c("perc.Registered.vessels", "perc.Declarative.data.vessels"))
+# levels<-sort(unique(ot$Vessel.length.range),decreasing = T)
+# 
+# p<-ggplot(ot, aes(fill=factor(Vessel.length.range,levels), y=value, x=Country_area)) +
+#   geom_bar(stat="identity", width = 0.75, position="stack")+
+#   scale_fill_brewer(palette="Set1")+
+#   facet_grid(.~variable)+
+#   theme(axis.text.x = element_text(angle = 90, hjust = 0.5, vjust = 0.5))+
+#   theme(plot.title = element_text(hjust = 0.5))+
+#   labs(title = paste("Percentage of LSF vessels (>=12m) by country*area (incl. scientific estimates) and vessel length range",
+#                      "\n",
+#                      "(declarative data vessels vs registered)"),
+#        x = "Country",
+#        y = "% of vessels",
+#        fill="Vessel length range")
+# fname <- paste0(result.path,"Declarative_vs_Registered_SSFVes_scientific_perc_by_cou+loa",".png")
+# ggsave(filename=fname, plot=p, width=10, height = 5)
 
 inter<-table2F
 table(inter$LSF)
@@ -667,7 +669,12 @@ ot<-inter[,.(Registered.vessels=sum(Registered.vessels,na.rm = T),Active.vessels
 ot$perc.Declarative.data.vessels <- (ot$Active.vessels/ot$Registered.vessels)*100
 head(ot)
 
-ot<-melt(ot, id=c("Country_area", "Vessel.length.range"), measure=c("perc.Declarative.data.vessels"))
+# We want to show the total number of declarative vessels on the plot for each country*area
+ot[,Active.vessels.total:=sum(Active.vessels, na.rm = T),by=.(Country_area)]
+countriesOrder <- unique(ot[order(-Active.vessels.total)]$Country_area)
+ot$Country_area <- factor(ot$Country_area, levels = countriesOrder)
+ot<-melt(ot, id=c("Country_area", "Vessel.length.range","Active.vessels.total"), 
+         measure=c("perc.Declarative.data.vessels"))
 ############### Remove NaN from dataset
 ot<-na.omit(ot, cols = "value") 
 #levels<-sort(unique(ot$Vessel.length.range),decreasing = T)
@@ -678,12 +685,23 @@ p<-ggplot(ot, aes(y=value, x=Vessel.length.range)) +
   facet_wrap(.~Country_area)+
   theme(axis.text.x = element_text(angle = 90, hjust = 0.5, vjust = 0.5))+
   theme(plot.title = element_text(hjust = 0.5))+
+  theme(plot.subtitle = element_text(hjust = 0.5))+
   labs(title = paste("Percentage of SSF vessels (<12m) with declarative data vs SSF registered vessels",
                      "\n",
                      "by country*area and vessel length range"),
+       subtitle = "n - total number of declarative data vessels by country*area",
        x = "Vessel length ranges",
        y = "% of SSF vessels (<12m) with declarative data vs SSF registered vessels")
-fname <- paste0("Declarative_vs_Registered_SSFVes_perc_by_cou+loa2",".png")
+xx <- 2
+yy <- max(ot$value) -5
+
+labtext <- ifelse(duplicated(ot[,c("Country_area","Active.vessels.total")]) == T,
+                  "",
+                  paste("n=",ot$Active.vessels.total,sep=""))
+p <- p + geom_text(data=ot,label=labtext, x=xx,y=yy,size=4)+
+  facet_wrap(~Country_area)
+
+fname <- paste0(result.path,"Declarative_vs_Registered_SSFVes_perc_by_cou+loa2",".png")
 ggsave(filename=fname, plot=p, width=15, height = 15)
 
 inter<-table2F
@@ -702,8 +720,10 @@ ot<-inter[,.(Registered.vessels=sum(Registered.vessels,na.rm = T),Active.vessels
 
 ot$perc.Declarative.data.vessels <- (ot$Active.vessels/ot$Registered.vessels)*100
 head(ot)
-
-ot<-melt(ot, id=c("Country_area", "Vessel.length.range"), measure=c("perc.Declarative.data.vessels"))
+ot[,Active.vessels.total:=sum(Active.vessels, na.rm = T),by=.(Country_area)]
+countriesOrder <- unique(ot[order(-Active.vessels.total)]$Country_area)
+ot$Country_area <- factor(ot$Country_area, levels = countriesOrder)
+ot<-melt(ot, id=c("Country_area", "Vessel.length.range","Active.vessels.total"), measure=c("perc.Declarative.data.vessels"))
 ############### Remove NaN from dataset
 ot<-na.omit(ot, cols = "value") 
 #levels<-sort(unique(ot$Vessel.length.range),decreasing = T)
@@ -714,12 +734,23 @@ p<-ggplot(ot, aes(y=value, x=Vessel.length.range)) +
   facet_wrap(.~Country_area)+
   theme(axis.text.x = element_text(angle = 90, hjust = 0.5, vjust = 0.5))+
   theme(plot.title = element_text(hjust = 0.5))+
+  theme(plot.subtitle = element_text(hjust = 0.5))+
   labs(title = paste("Percentage of LSF vessels (>=12m) with declarative data vs LSF registered vessels",
                      "\n",
                      "by country*area and vessel length range"),
+       subtitle = "n - total number of declarative data vessels by country*area",
        x = "Vessel length ranges",
        y = "% of LSF vessels (>=12m) with declarative data vs LSF registered vessels")
-fname <- paste0("Declarative_vs_Registered_LSFVes_perc_by_cou+loa2",".png")
+
+xx <- 2
+yy <- max(ot$value) -5
+labtext <- ifelse(duplicated(ot[,c("Country_area","Active.vessels.total")]) == T,
+                  "",
+                  paste("n=",ot$Active.vessels.total,sep=""))
+p <- p + geom_text(data=ot,label=labtext, x=xx,y=yy,size=4)+
+  facet_wrap(~Country_area)
+
+fname <- paste0(result.path,"Declarative_vs_Registered_LSFVes_perc_by_cou+loa2",".png")
 ggsave(filename=fname, plot=p, width=15, height = 15)
 
 inter<-table2F
@@ -729,39 +760,39 @@ table(inter$LSF)
 
 table(inter[inter$Scientific_estimates %in% c("OUI"),]$Country_area)
 table(inter$Scientific_estimates)
-inter <- inter[inter$Country_area %in% c("FRA_SSF_GSA7_2019sc","FRA_SSF_GSA7_2019","FRA_SSF_GSA8_2019sc","FRA_SSF_GSA8_2019",
-                                         "FRG_SSF_31_2019sc","FRG_SSF_31_2019","FRG_SSF_3141_2019sc","FRG_SSF_3141_2019",
-                                         "FRM_SSF_31_2019sc","FRM_SSF_31_2019","FRM_SSF_51_2019sc","FRM_SSF_51_2019",
-                                         "FRR_SSF_51_2019sc","FRR_SSF_51_2019","GRC_SSF_GSA22_2019sc","GRC_SSF_GSA22_2019"),]
-table(inter$Scientific_estimates)
-head(inter)
-
-#Perc. declarative data vessels by country*area and vessel length ranges
-#table2$Country_AREA <- paste(table2$Country_code, table2$Area,sep="_")
-ot<-inter[,.(Registered.vessels=sum(Registered.vessels,na.rm = T),Active.vessels=sum(Active.vessels,na.rm = T)),
-          by=.(Country_area,Vessel.length.range)]
-
-ot$perc.Declarative.data.vessels <- (ot$Active.vessels/ot$Registered.vessels)*100
-head(ot)
-
-ot<-melt(ot, id=c("Country_area", "Vessel.length.range"), measure=c("perc.Declarative.data.vessels"))
-############### Remove NaN from dataset
-ot<-na.omit(ot, cols = "value") 
-#levels<-sort(unique(ot$Vessel.length.range),decreasing = T)
-
-p<-ggplot(ot, aes(y=value, x=Vessel.length.range)) +
-  geom_bar(stat="identity", width = 0.99, position="stack")+
-  scale_fill_brewer(palette="Set1")+
-  facet_wrap(.~Country_area)+
-  theme(axis.text.x = element_text(angle = 90, hjust = 0.5, vjust = 0.5))+
-  theme(plot.title = element_text(hjust = 0.5))+
-  labs(title = paste("Percentage of SSF vessels (<12m) with declarative data or active regarding scientific estimates (sc) vs SSF registered vessels",
-                     "\n",
-                     "by country*area and vessel length range"),
-       x = "Vessel length ranges",
-       y = "% of SSF vessels (<12m) with declarative data or active regarding sceintific estimates (sc) vs SSF registered vessels")
-fname <- paste0("Declarative_vs_Registered_SSFVes_scientific_perc_by_cou+loa2",".png")
-ggsave(filename=fname, plot=p, width=15, height = 15)
+# inter <- inter[inter$Country_area %in% c("FRA_SSF_GSA7_2019sc","FRA_SSF_GSA7_2019","FRA_SSF_GSA8_2019sc","FRA_SSF_GSA8_2019",
+#                                          "FRG_SSF_31_2019sc","FRG_SSF_31_2019","FRG_SSF_3141_2019sc","FRG_SSF_3141_2019",
+#                                          "FRM_SSF_31_2019sc","FRM_SSF_31_2019","FRM_SSF_51_2019sc","FRM_SSF_51_2019",
+#                                          "FRR_SSF_51_2019sc","FRR_SSF_51_2019","GRC_SSF_GSA22_2019sc","GRC_SSF_GSA22_2019"),]
+# table(inter$Scientific_estimates)
+# head(inter)
+# 
+# #Perc. declarative data vessels by country*area and vessel length ranges
+# #table2$Country_AREA <- paste(table2$Country_code, table2$Area,sep="_")
+# ot<-inter[,.(Registered.vessels=sum(Registered.vessels,na.rm = T),Active.vessels=sum(Active.vessels,na.rm = T)),
+#           by=.(Country_area,Vessel.length.range)]
+# 
+# ot$perc.Declarative.data.vessels <- (ot$Active.vessels/ot$Registered.vessels)*100
+# head(ot)
+# 
+# ot<-melt(ot, id=c("Country_area", "Vessel.length.range"), measure=c("perc.Declarative.data.vessels"))
+# ############### Remove NaN from dataset
+# ot<-na.omit(ot, cols = "value") 
+# #levels<-sort(unique(ot$Vessel.length.range),decreasing = T)
+# 
+# p<-ggplot(ot, aes(y=value, x=Vessel.length.range)) +
+#   geom_bar(stat="identity", width = 0.99, position="stack")+
+#   scale_fill_brewer(palette="Set1")+
+#   facet_wrap(.~Country_area)+
+#   theme(axis.text.x = element_text(angle = 90, hjust = 0.5, vjust = 0.5))+
+#   theme(plot.title = element_text(hjust = 0.5))+
+#   labs(title = paste("Percentage of SSF vessels (<12m) with declarative data or active regarding scientific estimates (sc) vs SSF registered vessels",
+#                      "\n",
+#                      "by country*area and vessel length range"),
+#        x = "Vessel length ranges",
+#        y = "% of SSF vessels (<12m) with declarative data or active regarding sceintific estimates (sc) vs SSF registered vessels")
+# fname <- paste0(result.path,"Declarative_vs_Registered_SSFVes_scientific_perc_by_cou+loa2",".png")
+# ggsave(filename=fname, plot=p, width=15, height = 15)
 
 # #Registered vs. active by area
 # table2$Country_AREA <- paste(table2$Country_code, table2$Area,sep="_")
@@ -830,10 +861,10 @@ p<-ggplot(ot,aes(fill=variable,y=value,x=Country_area))+
        x = "Country_area",
        y = "Number of vessels",
        fill="")
-fname <- paste0("Declarative_vs_Registered_SSFVes_nb_by_cou+loa",".png")
+fname <- paste0(result.path,"Declarative_vs_Registered_SSFVes_nb_by_cou+loa",".png")
 ggsave(filename=fname, plot=p, width=10, height = 10)
 
-p<-ggplot(ot[!(ot$Country_area %in% c("GRC_SSF_GSA22_2019","GRC_SSF_GSA22_2019sc","NOR_SSF_27_2017","PRT_SSF_27_2019")),]
+p<-ggplot(ot[!(ot$Country_area %in% c("GRC_SSF_MBS_NGI_2023","GRC_SSF_GSA22_2019sc","NOR_SSF_27_2017","PRT_SSF_NAO_NGI_2023")),]
           ,aes(fill=variable,y=value,x=Country_area))+
   geom_bar(stat="identity",position="dodge")+
   scale_fill_brewer(palette="Set1")+
@@ -846,7 +877,7 @@ p<-ggplot(ot[!(ot$Country_area %in% c("GRC_SSF_GSA22_2019","GRC_SSF_GSA22_2019sc
        x = "Country_area",
        y = "Number of vessels",
        fill="")
-fname <- paste0("Declarative_vs_Registered_SSFVes_nb_by_cou2+loa",".png")
+fname <- paste0(result.path,"Declarative_vs_Registered_SSFVes_nb_by_cou2+loa",".png")
 ggsave(filename=fname, plot=p, width=10, height = 10)
 
 
@@ -876,7 +907,7 @@ p<-ggplot(ot,aes(fill=variable,y=value,x=Country_area))+
        x = "Country_area",
        y = "Number of vessels",
        fill="")
-fname <- paste0("Declarative_vs_Registered_LSFVes_nb_by_cou+loa",".png")
+fname <- paste0(result.path,"Declarative_vs_Registered_LSFVes_nb_by_cou+loa",".png")
 ggsave(filename=fname, plot=p, width=10, height = 10)
 
 #Registered vs. active by country by vessel length ranges
@@ -909,7 +940,7 @@ p<-ggplot(ot,aes(fill=variable,y=value,x=Country_area))+
        x = "Country_area", 
        y = "%r of vessels",
        fill="")
-fname <- paste0("Declarative_vs_Registered_SSFVes_perc_by_cou2+loa",".png")
+fname <- paste0(result.path,"Declarative_vs_Registered_SSFVes_perc_by_cou2+loa",".png")
 ggsave(filename=fname, plot=p, width=10, height = 10)
 
 inter<-table2F
@@ -939,7 +970,7 @@ p<-ggplot(ot,aes(fill=variable,y=value,x=Country_area))+
        x = "Country_area", 
        y = "%r of vessels",
        fill="")
-fname <- paste0("Declarative_vs_Registered_LSFVes_perc_by_cou2+loa",".png")
+fname <- paste0(result.path,"Declarative_vs_Registered_LSFVes_perc_by_cou2+loa",".png")
 ggsave(filename=fname, plot=p, width=10, height = 10)
 
 ############ Number of trips ranges - Graphs ###########################################
@@ -1129,7 +1160,7 @@ p<-ggplot(ot, aes(fill=factor(Trips.range,levels), y=nb.Vessels, x=Country_area)
        x = "Country_area", 
        y = "% of vessels",
        fill="Number of trips range")
-fname <- paste0("Declarative_SSFVes_perc_by_cou+nbtripsranges",".png")
+fname <- paste0(result.path,"Declarative_SSFVes_perc_by_cou+nbtripsranges",".png")
 ggsave(filename=fname, plot=p, width=8, height = 5)
 
 inter<-table3F
@@ -1169,7 +1200,7 @@ p<-ggplot(ot, aes(fill=factor(Trips.range,levels), y=nb.Vessels, x=Country_area)
        x = "Country_area", 
        y = "% of vessels",
        fill="Number of trips range")
-fname <- paste0("Declarative_LSFVes_perc_by_cou+nbtripsranges",".png")
+fname <- paste0(result.path,"Declarative_LSFVes_perc_by_cou+nbtripsranges",".png")
 ggsave(filename=fname, plot=p, width=8, height = 5)
 
 inter<-table3F
@@ -1178,44 +1209,44 @@ inter <- inter[inter$LSF %in% c("NON"),]
 table(inter$LSF)
 table(inter[inter$Scientific_estimates %in% c("OUI"),]$Country_area)
 table(inter$Scientific_estimates)
-inter <- inter[inter$Country_area %in% c("FRA_SSF_GSA7_2019sc","FRA_SSF_GSA7_2019","FRA_SSF_GSA8_2019sc","FRA_SSF_GSA8_2019",
-                                         "FRG_SSF_31_2019sc","FRG_SSF_31_2019","FRG_SSF_3141_2019sc","FRG_SSF_3141_2019",
-                                         "FRM_SSF_31_2019sc","FRM_SSF_31_2019","FRM_SSF_51_2019sc","FRM_SSF_51_2019",
-                                         "FRR_SSF_51_2019sc","FRR_SSF_51_2019","GRC_SSF_GSA22_2019sc","GRC_SSF_GSA22_2019"),]
-table(inter$Scientific_estimates)
-head(inter)
-
-
-ot<-inter[Trips.range!="6: inactive" & Trips.range!="7: active" & Trips.range!="8: registered",
-          .(nb.Vessels=sum(nb.Vessels,na.rm = T)),
-          by=.(Country_area,Trips.range)]
-levels<-sort(unique(ot$Trips.range),decreasing = T)
-
-
-# p<-ggplot(ot[Trips.range!="0: inactive"], aes(fill=factor(Trips.range,levels), y=nb.Vessels, x=Country_AREA)) +
-#   geom_bar(stat="identity", width = 0.75)+
+# inter <- inter[inter$Country_area %in% c("FRA_SSF_GSA7_2019sc","FRA_SSF_GSA7_2019","FRA_SSF_GSA8_2019sc","FRA_SSF_GSA8_2019",
+#                                          "FRG_SSF_31_2019sc","FRG_SSF_31_2019","FRG_SSF_3141_2019sc","FRG_SSF_3141_2019",
+#                                          "FRM_SSF_31_2019sc","FRM_SSF_31_2019","FRM_SSF_51_2019sc","FRM_SSF_51_2019",
+#                                          "FRR_SSF_51_2019sc","FRR_SSF_51_2019","GRC_SSF_GSA22_2019sc","GRC_SSF_GSA22_2019"),]
+# table(inter$Scientific_estimates)
+# head(inter)
+# 
+# 
+# ot<-inter[Trips.range!="6: inactive" & Trips.range!="7: active" & Trips.range!="8: registered",
+#           .(nb.Vessels=sum(nb.Vessels,na.rm = T)),
+#           by=.(Country_area,Trips.range)]
+# levels<-sort(unique(ot$Trips.range),decreasing = T)
+# 
+# 
+# # p<-ggplot(ot[Trips.range!="0: inactive"], aes(fill=factor(Trips.range,levels), y=nb.Vessels, x=Country_AREA)) +
+# #   geom_bar(stat="identity", width = 0.75)+
+# #   scale_fill_brewer(palette="Set1")+
+# #   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))+
+# #   labs(title = "Number of SSF vessels by country*area and number of trips range", 
+# #        x = "Country", 
+# #        y = "Number of vessels",
+# #        fill="Number of trips range")
+# # fname <- paste0("Ves_by_cou+trips_excl_inactive",".png")
+# # ggsave(filename=fname, plot=p, width=8, height = 5)
+# 
+# p<-ggplot(ot, aes(fill=factor(Trips.range,levels), y=nb.Vessels, x=Country_area)) +
+#   geom_bar(stat="identity", width = 0.75, position="fill")+
 #   scale_fill_brewer(palette="Set1")+
 #   theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))+
-#   labs(title = "Number of SSF vessels by country*area and number of trips range", 
-#        x = "Country", 
-#        y = "Number of vessels",
+#   theme(plot.title = element_text(hjust = 0.5))+
+#   labs(title = paste("Percentage of SSF declarative data vessels (<12m, including scientific estimates)",
+#                      "\n",
+#                      "by country*area and number of trips range"), 
+#        x = "Country_area", 
+#        y = "% of vessels",
 #        fill="Number of trips range")
-# fname <- paste0("Ves_by_cou+trips_excl_inactive",".png")
+# fname <- paste0(result.path,"Declarative_SSFVes_scientific_perc_by_cou+nbtripsranges",".png")
 # ggsave(filename=fname, plot=p, width=8, height = 5)
-
-p<-ggplot(ot, aes(fill=factor(Trips.range,levels), y=nb.Vessels, x=Country_area)) +
-  geom_bar(stat="identity", width = 0.75, position="fill")+
-  scale_fill_brewer(palette="Set1")+
-  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = 0.5))+
-  theme(plot.title = element_text(hjust = 0.5))+
-  labs(title = paste("Percentage of SSF declarative data vessels (<12m, including scientific estimates)",
-                     "\n",
-                     "by country*area and number of trips range"), 
-       x = "Country_area", 
-       y = "% of vessels",
-       fill="Number of trips range")
-fname <- paste0("Declarative_SSFVes_scientific_perc_by_cou+nbtripsranges",".png")
-ggsave(filename=fname, plot=p, width=8, height = 5)
 
 
 # p<-ggplot(ot, aes(fill=Country_AREA, y=nb.Vessels, x=Trips.range)) +
@@ -1276,6 +1307,10 @@ levels<-sort(unique(ot$Vessel.length.range),decreasing = T)
 
 countries<-sort(unique(ot$Country_area))
 
+ot[,nb.Vessels.total:=sum(nb.Vessels, na.rm = T),by=.(Country_area)]
+countriesOrder <- unique(ot[order(-nb.Vessels.total)]$Country_area)
+ot$Country_area <- factor(ot$Country_area, levels = countriesOrder)
+
 # for(c in countries){
 #   p<-ggplot(ot[Country_AREA==c & Trips.range!="0: inactive"])+
 #     geom_bar(aes(x=Trips.range, y=nb.Vessels, fill=factor(Vessel.length.range,levels)),stat = "identity")+
@@ -1294,14 +1329,24 @@ p<-ggplot(ot)+
   scale_fill_brewer(palette="Set1")+
   theme(axis.text.x = element_text(angle = 315, hjust=0))+
   theme(plot.title = element_text(hjust = 0.5))+
+  theme(plot.subtitle = element_text(hjust = 0.5))+
   facet_wrap( ~ Country_area, ncol=5)+
   labs(title = paste("Percentage of SSF declarative data vessels (<12m)",
               "\n",
               "by country*area, vessel length range and number of trips range"), 
+       subtitle = "n - total number of SSF declarative data vessels by country*area",
        x = "Number of trips range", 
        y = "% of vessels",
        fill="Vessel length range")
-fname <- paste0("Declarative_SSFVes_perc_by_cou+vessellengthranges+nbtripsranges",".png")
+xx <- 2
+yy <- max(ot[,.(sum(Vessels.perc)),by=.(Country_area,Trips.range)]$V1)
+labtext <- ifelse(duplicated(ot[,c("Country_area","nb.Vessels.total")]) == T,
+                  "",
+                  paste("n=",ot$nb.Vessels.total,sep=""))
+p <- p + geom_text(data=ot,label=labtext, x=xx,y=yy,size=4)+
+  facet_wrap(~Country_area)
+
+fname <- paste0(result.path,"Declarative_SSFVes_perc_by_cou+vessellengthranges+nbtripsranges",".png")
 ggsave(filename=fname, plot=p, width=10, height=10)
 
 inter<-table3F
@@ -1320,7 +1365,9 @@ ot[,Vessels.perc:=nb.Vessels/sum(nb.Vessels,na.rm = T),by=.(Country_area)]
 levels<-sort(unique(ot$Vessel.length.range),decreasing = T)
 
 countries<-sort(unique(ot$Country_area))
-
+ot[,nb.Vessels.total:=sum(nb.Vessels, na.rm = T),by=.(Country_area)]
+countriesOrder <- unique(ot[order(-nb.Vessels.total)]$Country_area)
+ot$Country_area <- factor(ot$Country_area, levels = countriesOrder)
 # for(c in countries){
 #   p<-ggplot(ot[Country_AREA==c & Trips.range!="0: inactive"])+
 #     geom_bar(aes(x=Trips.range, y=nb.Vessels, fill=factor(Vessel.length.range,levels)),stat = "identity")+
@@ -1339,15 +1386,25 @@ p<-ggplot(ot)+
   scale_fill_brewer(palette="Set1")+
   theme(axis.text.x = element_text(angle = 315, hjust=0))+
   theme(plot.title = element_text(hjust = 0.5))+
+  theme(plot.subtitle = element_text(hjust = 0.5))+
   facet_wrap( ~ Country_area, ncol=5)+
   labs(title = paste("Percentage of LSF declarative data vessels (>=12m)",
                      "\n",
                      "by country*area, vessel length range and number of trips range"), 
+       subtitle = "n - total number of LSF declarative data vessels by country*area",
        x = "Number of trips range", 
        y = "% of vessels",
        fill="Vessel length range")
-fname <- paste0("Declarative_LSFVes_perc_by_cou+vessellengthranges+nbtripsranges",".png")
-ggsave(filename=fname, plot=p, width=10, height=10)
+xx <- 3.5
+yy <- 0.9
+labtext <- ifelse(duplicated(ot[,c("Country_area","nb.Vessels.total")]) == T,
+                  "",
+                  paste("n=",ot$nb.Vessels.total,sep=""))
+p <- p + geom_text(data=ot,label=labtext, x=xx,y=yy,size=4)+
+  facet_wrap(~Country_area)
+
+fname <- paste0(result.path,"Declarative_LSFVes_perc_by_cou+vessellengthranges+nbtripsranges",".png")
+ggsave(filename=fname, plot=p, width=12, height=10)
 
 inter<-table3F
 table(inter$LSF)
@@ -1355,48 +1412,48 @@ inter <- inter[inter$LSF %in% c("NON"),]
 table(inter$LSF)
 table(inter[inter$Scientific_estimates %in% c("OUI"),]$Country_area)
 table(inter$Scientific_estimates)
-inter <- inter[inter$Country_area %in% c("FRA_SSF_GSA7_2019sc","FRA_SSF_GSA7_2019","FRA_SSF_GSA8_2019sc","FRA_SSF_GSA8_2019",
-                                         "FRG_SSF_31_2019sc","FRG_SSF_31_2019","FRG_SSF_3141_2019sc","FRG_SSF_3141_2019",
-                                         "FRM_SSF_31_2019sc","FRM_SSF_31_2019","FRM_SSF_51_2019sc","FRM_SSF_51_2019",
-                                         "FRR_SSF_51_2019sc","FRR_SSF_51_2019","GRC_SSF_GSA22_2019sc","GRC_SSF_GSA22_2019"),]
-table(inter$Scientific_estimates)
-head(inter)
-
-ot<-inter[Trips.range!="6: inactive" & Trips.range!="7: active" & Trips.range!="8: registered",
-          .(nb.Vessels=sum(nb.Vessels,na.rm = T)),
-          by=.(Country_area,Vessel.length.range,Trips.range)]
-ot[,Vessels.perc:=nb.Vessels/sum(nb.Vessels,na.rm = T),by=.(Country_area)]
-levels<-sort(unique(ot$Vessel.length.range),decreasing = T)
-
-countries<-sort(unique(ot$Country_area))
-
-# for(c in countries){
-#   p<-ggplot(ot[Country_AREA==c & Trips.range!="0: inactive"])+
-#     geom_bar(aes(x=Trips.range, y=nb.Vessels, fill=factor(Vessel.length.range,levels)),stat = "identity")+
-#     scale_fill_brewer(palette="Set1")+
-#     theme(axis.text.x = element_text(angle = 315, hjust=0))+
-#     labs(title = paste0("Number of SSF vessels by LOA range\nand trips range in ",c), 
-#          x = "Number of trips range", 
-#          y = "Number of vessels",
-#          fill="Vessel length range")
-#   fname <- paste0("_Ves_by_loa+trips_",c,".png")
-#   ggsave(filename=fname, plot=p)
-# }
-
-p<-ggplot(ot)+
-  geom_bar(aes(x=Trips.range, y=Vessels.perc, fill=factor(Vessel.length.range,levels)),stat = "identity")+
-  scale_fill_brewer(palette="Set1")+
-  theme(axis.text.x = element_text(angle = 315, hjust=0))+
-  theme(plot.title = element_text(hjust = 0.5))+
-  facet_wrap( ~ Country_area, ncol=5)+
-  labs(title = paste("Percentage of SSF declarative data vessels (<12m including scientific estimates)",
-                     "\n",
-                     "by country*area, vessel length range and number of trips range"), 
-       x = "Number of trips range", 
-       y = "% of vessels",
-       fill="Vessel length range")
-fname <- paste0("Declarative_SSFVes_scientific_perc_by_cou+vessellengthranges+nbtripsranges",".png")
-ggsave(filename=fname, plot=p, width=10, height=10)
+# inter <- inter[inter$Country_area %in% c("FRA_SSF_GSA7_2019sc","FRA_SSF_GSA7_2019","FRA_SSF_GSA8_2019sc","FRA_SSF_GSA8_2019",
+#                                          "FRG_SSF_31_2019sc","FRG_SSF_31_2019","FRG_SSF_3141_2019sc","FRG_SSF_3141_2019",
+#                                          "FRM_SSF_31_2019sc","FRM_SSF_31_2019","FRM_SSF_51_2019sc","FRM_SSF_51_2019",
+#                                          "FRR_SSF_51_2019sc","FRR_SSF_51_2019","GRC_SSF_GSA22_2019sc","GRC_SSF_GSA22_2019"),]
+# table(inter$Scientific_estimates)
+# head(inter)
+# 
+# ot<-inter[Trips.range!="6: inactive" & Trips.range!="7: active" & Trips.range!="8: registered",
+#           .(nb.Vessels=sum(nb.Vessels,na.rm = T)),
+#           by=.(Country_area,Vessel.length.range,Trips.range)]
+# ot[,Vessels.perc:=nb.Vessels/sum(nb.Vessels,na.rm = T),by=.(Country_area)]
+# levels<-sort(unique(ot$Vessel.length.range),decreasing = T)
+# 
+# countries<-sort(unique(ot$Country_area))
+# 
+# # for(c in countries){
+# #   p<-ggplot(ot[Country_AREA==c & Trips.range!="0: inactive"])+
+# #     geom_bar(aes(x=Trips.range, y=nb.Vessels, fill=factor(Vessel.length.range,levels)),stat = "identity")+
+# #     scale_fill_brewer(palette="Set1")+
+# #     theme(axis.text.x = element_text(angle = 315, hjust=0))+
+# #     labs(title = paste0("Number of SSF vessels by LOA range\nand trips range in ",c), 
+# #          x = "Number of trips range", 
+# #          y = "Number of vessels",
+# #          fill="Vessel length range")
+# #   fname <- paste0("_Ves_by_loa+trips_",c,".png")
+# #   ggsave(filename=fname, plot=p)
+# # }
+# 
+# p<-ggplot(ot)+
+#   geom_bar(aes(x=Trips.range, y=Vessels.perc, fill=factor(Vessel.length.range,levels)),stat = "identity")+
+#   scale_fill_brewer(palette="Set1")+
+#   theme(axis.text.x = element_text(angle = 315, hjust=0))+
+#   theme(plot.title = element_text(hjust = 0.5))+
+#   facet_wrap( ~ Country_area, ncol=5)+
+#   labs(title = paste("Percentage of SSF declarative data vessels (<12m including scientific estimates)",
+#                      "\n",
+#                      "by country*area, vessel length range and number of trips range"), 
+#        x = "Number of trips range", 
+#        y = "% of vessels",
+#        fill="Vessel length range")
+# fname <- paste0(result.path,"Declarative_SSFVes_scientific_perc_by_cou+vessellengthranges+nbtripsranges",".png")
+# ggsave(filename=fname, plot=p, width=10, height=10)
 
 
 # ot<-table3[Trips.range!="6: inactive" & Trips.range!="7: active",.(nb.Vessels=sum(nb.Vessels,na.rm = T)),
@@ -1445,3 +1502,4 @@ ggsave(filename=fname, plot=p, width=10, height=10)
 #        fill="")
 # fname <- paste0("Ves_by_cou",".png")
 # ggsave(filename=fname, plot=p, width=10, height = 5)
+
