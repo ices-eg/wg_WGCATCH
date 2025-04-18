@@ -7,7 +7,7 @@ library(ggnewscale)
 rm(list=ls())
 gc()
 
-v<-8
+v<-9
 cou.excl<-c("IRL")
 areas<-c("27","37")
 
@@ -55,6 +55,7 @@ data.source.char<-data.source.char[Region %in% areas, unique(.SD),
 data.source.char[Vessel.length.range==">=10m", Vessel.length.range.new:="10-15"];.Last.updated;
 data.source.char[Vessel.length.range=="<10m", Vessel.length.range.new:="0-10"];.Last.updated;
 
+table(data$Supra.Region_new, useNA = "always")
 
 data.sum<-data[!Country_new %in% cou.excl & Supra.Region_new %in% areas,
                .(trips = sum(Number.of.fishing.trips.peformed.by.vessel.length.range, na.rm=T),
@@ -560,7 +561,7 @@ p <- ggplot()+
            stat="identity",position="fill")+
   scale_fill_manual(values = palette.def.char)+
   scale_x_discrete(guide = guide_axis(angle=45))+
-  scale_y_continuous(labels = scales::percent,name="% of landings value [thousand EUR]")+
+  scale_y_continuous(labels = scales::percent,name="% of landings value")+
   labs(x="Vessels length range", 
        title = "Percentage of landings value in 2019 in areas 27 and 37",
        fill="Data source grades")+
@@ -828,6 +829,30 @@ p <- ggplot()+
 p
 ggsave(p,file=paste0("plots/4_avg_landings_weight_vessel_v",v,".png"),width = 10,height = 7)
 
+# Average landings per vessel - revised
+plot.factor <- max(series1$avg.landings.vessel, na.rm = T) / max(series3$avg.landings.vessel, na.rm = T)
+p <- ggplot()+
+  geom_point(data=series1[avg.landings.vessel>0],
+             aes(x=Country, y=avg.landings.vessel, colour=Vessel.length), size=2.5, position = position_dodge(width=0.5))+
+  scale_colour_manual("Small scale fleet\nvessels length range", values = palette.def.all)+
+  new_scale_colour()+
+  geom_point(data=series3, aes(x=Country, 
+                               y=(avg.landings.vessel * plot.factor), 
+                               colour=Vessel.length), 
+             shape=22, fill="#E41A1C", size=3.5, alpha=0.5)+
+  scale_colour_manual("Large scale fleet", values = "black")+
+  scale_x_discrete(guide = guide_axis(angle=45))+
+  scale_y_continuous(labels = scales::number,name="Avg. landings/vessel SSF [t]",
+                     sec.axis = sec_axis(~./plot.factor, name = "Avg. landings/vessel LSF [t]"))+
+  labs(x="Country", 
+       title = "Average landings weight per vessel in 2019 in areas 27 and 37")+
+  theme(axis.line.y.left=element_line(colour="black"),
+        axis.line.y.right = element_line(colour="black"),
+        axis.ticks.y.right = element_line(colour="black"),
+        axis.line.x.bottom = element_line(colour="black"))
+p
+ggsave(p,file=paste0("plots/4_avg_landings_weight_vessel_v",v,"_revised.png"),width = 10,height = 7)
+
 # Average landings per trip
 plot.factor <- max(series1$avg.landings.trip, na.rm = T) / max(series3$avg.landings.trip, na.rm = T)
 p <- ggplot()+
@@ -860,7 +885,7 @@ p <- ggplot()+
   geom_point(data=series3, aes(x=Country, 
                                y=(avg.landings.trip * plot.factor), 
                                colour=Vessel.length), 
-             shape=22, fill="black", size=3.5, alpha=0.5)+
+             shape=22, fill="#E41A1C", size=3.5, alpha=0.5)+
   scale_colour_manual("Large scale fleet", values = "black")+
   scale_x_discrete(guide = guide_axis(angle=45))+
   scale_y_continuous(labels = scales::number,name="Avg. landings/trip SSF [t]",
@@ -882,7 +907,7 @@ p <- ggplot()+
            stat="identity", width = 0.8)+
   scale_fill_manual(values = palette.def.all)+
   scale_x_discrete(guide = guide_axis(angle=45))+
-  scale_y_continuous(labels = scales::number,name="Avg. days at sea/vessel [t]")+
+  scale_y_continuous(labels = scales::number,name="Avg. days at sea/vessel")+
   labs(x="Country", 
        title = "Average days at sea per vessel in 2019 in areas 27 and 37",
        fill="Vessels length range")+
@@ -902,7 +927,7 @@ p <- ggplot()+
            stat="identity", width = 0.8)+
   scale_fill_manual(values = palette.def.all)+
   scale_x_discrete(guide = guide_axis(angle=45))+
-  scale_y_continuous(labels = scales::number,name="Avg. days at sea/trip [t]")+
+  scale_y_continuous(labels = scales::number,name="Avg. days at sea/trip")+
   labs(x="Country", 
        title = "Average days at sea per trip in 2019 in areas 27 and 37",
        fill="Vessels length range")+
@@ -912,7 +937,6 @@ p <- ggplot()+
         axis.line.x.bottom = element_line(colour="black"))
 p
 ggsave(p,file=paste0("plots/4_avg_days_trip_v",v,".png"),width = 10,height = 7)
-
 
 # Average landings value per vessel
 plot.factor <- max(series1$avg.value.vessel, na.rm = T) / max(series3$avg.value.vessel, na.rm = T)
@@ -935,6 +959,30 @@ p <- ggplot()+
         axis.line.x.bottom = element_line(colour="black"))
 p
 ggsave(p,file=paste0("plots/4_avg_landings_value_vessel_v",v,".png"),width = 10,height = 7)
+
+# Average landings value per vessel - revised
+plot.factor <- max(series1$avg.value.vessel, na.rm = T) / max(series3$avg.value.vessel, na.rm = T)
+p <- ggplot()+
+  geom_point(data=series1[avg.value.vessel>0],
+             aes(x=Country, y=avg.value.vessel, colour=Vessel.length), size=2.5, position = position_dodge(width=0.5))+
+  scale_colour_manual("Small scale fleet\nvessels length range", values = palette.def.all)+
+  new_scale_colour()+
+  geom_point(data=series3, aes(x=Country, 
+                               y=(avg.value.vessel * plot.factor), 
+                               colour=Vessel.length), 
+             shape=22, fill="#E41A1C", size=3.5, alpha=0.5)+
+  scale_colour_manual("Large scale fleet", values = "black")+
+  scale_x_discrete(guide = guide_axis(angle=45))+
+  scale_y_continuous(labels = scales::number,name="Avg. landings value/vessel SSF [1000 EUR]",
+                     sec.axis = sec_axis(~./plot.factor, name = "Avg. landings value/vessel LSF [1000 EUR]"))+
+  labs(x="Country", 
+       title = "Average landings value per vessel in 2019 in areas 27 and 37")+
+  theme(axis.line.y.left=element_line(colour="black"),
+        axis.line.y.right = element_line(colour="black"),
+        axis.ticks.y.right = element_line(colour="black"),
+        axis.line.x.bottom = element_line(colour="black"))
+p
+ggsave(p,file=paste0("plots/4_avg_landings_value_vessel_v",v,"_revised.png"),width = 10,height = 7)
 
 # Average landings value per trip
 plot.factor <- max(series1$avg.value.trip, na.rm = T) / max(series3$avg.value.trip, na.rm = T)
@@ -968,7 +1016,7 @@ p <- ggplot()+
   geom_point(data=series3, aes(x=Country, 
                                y=(avg.value.trip * plot.factor), 
                                colour=Vessel.length), 
-             shape=22, fill="black", size=3.5, alpha=0.5)+
+             shape=22, fill="#E41A1C", size=3.5, alpha=0.5)+
   scale_colour_manual("Large scale fleet", values = "black")+
   scale_x_discrete(guide = guide_axis(angle=45))+
   scale_y_continuous(labels = scales::number,name="Avg. landings value/trip SSF [1000 EUR]",
@@ -992,7 +1040,7 @@ p <- ggplot()+
   geom_point(data=series3[avg.landings.das>0 & days.at.sea>0], aes(x=Country, 
                                y=(avg.landings.das * plot.factor), 
                                colour=Vessel.length), 
-             shape=22, fill="black", size=3.5, alpha=0.5)+
+             shape=22, fill="#E41A1C", size=3.5, alpha=0.5)+
   scale_colour_manual("Large scale fleet", values = "black")+
   scale_x_discrete(guide = guide_axis(angle=45))+
   scale_y_continuous(labels = scales::number,name="Avg. landings/day at sea SSF [t]",
@@ -1016,7 +1064,7 @@ p <- ggplot()+
   geom_point(data=series3[avg.value.das>0 & days.at.sea>0], aes(x=Country, 
                                                                    y=(avg.value.das * plot.factor), 
                                                                    colour=Vessel.length), 
-             shape=22, fill="black", size=3.5, alpha=0.5)+
+             shape=22, fill="#E41A1C", size=3.5, alpha=0.5)+
   scale_colour_manual("Large scale fleet", values = "black")+
   scale_x_discrete(guide = guide_axis(angle=45))+
   scale_y_continuous(labels = scales::number,name="Avg. landings value/day at sea SSF [1000 EUR]",
