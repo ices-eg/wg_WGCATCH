@@ -14,6 +14,7 @@ knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 library(tidyverse, quietly = TRUE)
 library(DT)
 library(readxl)
+library(gridExtra)
 ```
 
 ```{r}
@@ -34,7 +35,7 @@ names(d2old) <- c(
   "Year",
   "SamplingScheme",
   "Gear",
-  "Area",
+  "AreaCode",
   "NoTripsSampled",
   "NoTripsTotal",
   "SamplingIntensity",
@@ -46,40 +47,48 @@ names(d2old) <- c(
   "Comments"
 )
 
-d4old <- read_xlsx(paste0(path, "eu.2022.04b_dataset.xlsx"), sheet = "Coverage")
+d4old <- read_xlsx(paste0(path, "eu.2022.04b_dataset.xlsx"), sheet = "Sample schemes bycatch studies")
+d4old <- d4old[-1, ]
 
 # RDBES - CE 
-ce <- read.csv(paste0(path, "CommercialEffort.csv"))
+# ce <- read.csv(paste0(path, "CommercialEffort.csv"))
 ## Filter out countries that did not respond to the datacall 
 # unique(d2$Country)
 # unique(ce$CEvesselFlagCountry)
 
-ce <- filter(ce, CEvesselFlagCountry %in% unique(d2$Country))
+# ce <- filter(ce, CEvesselFlagCountry %in% unique(d2$Country))
 # setdiff(unique(d2$Country), unique(ce$CEvesselFlagCountry)) # med countries and PT-20 excl - correct
 ```
 
 
 ```{r}
 # Useful fun 
-# helper to match a code as a standalone-ish token (prevents partial hits)
-tok <- function(x) paste0("(?<![A-Z])(", x, ")(?![A-Z])")
-# Clasify gears
-# Group gears 
 classify_gear <- function(x) {
+  
+  # capture the NAs
+  if (is.na(x)) return(NA_character_)
+  
+  # split on underscores and treat each piece as a separate code
+  parts <- unlist(str_split(x, "_"))
+  parts <- parts[str_detect(parts, "^[A-Za-z]+$")]
+  
+  # helper for standalone-ish match
+  tok <- function(x) paste0("(?<![A-Z])(", x, ")(?![A-Z])")
+
   cats <- c(
-    PelTrawl = str_detect(x, regex(tok("OTM|PTM|PT"), ignore_case = TRUE)),
-    DemTrawl = str_detect(x, regex(tok("OTB|PTB|TBB|OTT|TB"), ignore_case = TRUE)),
-    DemSeine    = str_detect(x, regex(tok("SSC|SPR|SDN"), ignore_case = TRUE)),
-    PelSeine    = str_detect(x, regex(tok("PS"), ignore_case = TRUE)),
-    LinesHooks = str_detect(x, regex(tok("LLD|LLS|LH|LHP|LHM|LTL"), ignore_case = TRUE)),
-    Gillnetters = str_detect(x, regex(tok("GNS|GTR|GN|GND|GTN|GNC"), ignore_case = TRUE))
+    PelTrawl = any(str_detect(parts, regex(tok("OTM|PTM|PT"), ignore_case = TRUE))),
+    DemTrawl = any(str_detect(parts, regex(tok("OTB|PTB|TBB|OTT|TB"), ignore_case = TRUE))),
+    DemSeine = any(str_detect(parts, regex(tok("SSC|SPR|SDN"), ignore_case = TRUE))),
+    PelSeine = any(str_detect(parts, regex(tok("PS"), ignore_case = TRUE))),
+    LinesHooks = any(str_detect(parts, regex(tok("LLD|LLS|LH|LHP|LHM|LTL"), ignore_case = TRUE))),
+    Gillnetters = any(str_detect(parts, regex(tok("GNS|GTR|GN|GND|GTN|GNC"), ignore_case = TRUE)))
   )
 
-  # the free text thing
-  cats["PelTrawl"]   <- cats["PelTrawl"]   | str_detect(x, regex("pelagic trawler", ignore_case = TRUE))
-  cats["Gillnetters"]<- cats["Gillnetters"]| str_detect(x, regex("gillnetter", ignore_case = TRUE))
-  cats["DemTrawl"]   <- cats["DemTrawl"]   | (str_detect(x, regex("trawler", ignore_case = TRUE)) &
-                                               str_detect(x, regex("demersal|cod", ignore_case = TRUE)))
+  # free-text rules look at full string
+  cats["PelTrawl"]    <- cats["PelTrawl"]    | str_detect(x, regex("pelagic trawler", ignore_case = TRUE))
+  cats["Gillnetters"] <- cats["Gillnetters"] | str_detect(x, regex("gillnetter", ignore_case = TRUE))
+  cats["DemTrawl"]    <- cats["DemTrawl"]    | (str_detect(x, regex("trawler", ignore_case = TRUE)) &
+                                                 str_detect(x, regex("demersal|cod", ignore_case = TRUE)))
 
   present <- names(cats)[cats]
 
@@ -155,7 +164,7 @@ parse_one_code <- function(code) {
       ))
     }
 
-    # --- GSA: explicit GSA + number ----------------------------------------
+   #  explicit GSA + number 
     if (str_detect(str_to_upper(p), "^GSA\\s*\\d+$")) {
       num <- as.integer(str_extract(p, "\\d+"))
       return(tibble(
@@ -210,17 +219,38 @@ parse_one_code <- function(code) {
   })
 }
 
+# 
+
 ```
 
 ```{r}
 # Bind the d2 
-d2old <- mutate(d2old, NoTripsSampled = as.numeric(NoTripsSampled),
-                NoTripsTotal = as.numeric(NoTripsTotal))
+d2 <- mutate(d2, Source = "2025DC")
+d2old <- mutate(d2old, 
+                NoTripsSampled = as.numeric(NoTripsSampled),
+                NoTripsTotal = as.numeric(NoTripsTotal),
+                Source = "2020DC")
 d2all<- bind_rows(d2, d2old)
 
-# Bind the d4
+# mutate PT-20 to PT and the two codes for Germany 
+d2all <- mutate(d2all, Country = ifelse(Country %in% "PT-20", "PT", 
+                                        ifelse(Country %in% "DEU", "DE", Country)))
+
 ```
 
+```{r}
+d2Tab <- d2all %>%
+  group_by(Source) %>%
+  summarise(NoCountries = length(unique(Country)),
+            Countries = paste0(sort(unique(Country)), collapse = ", "))
+
+d2Tab  %>%
+  datatable(extensions = 'Buttons', rownames = FALSE, 
+            options = list(dom = 'Blfrtip',
+                           buttons = c('copy', 'csv', 'excel'),
+                           lengthMenu = list(c(10,25,50,-1),
+                                             c(10,25,50,"All"))))
+```
 
 
 # Data sources 
@@ -232,7 +262,7 @@ Three different data sources were used in this analysis. First, the countries re
 
 ## Gear/Metier groupings 
 
-The metiers reported by each country were grouped into five categories: 
+The metiers reported by each country were grouped into six categories: 
 
 1. Pelagic trawl
 2. Demersal trawl
@@ -241,26 +271,23 @@ The metiers reported by each country were grouped into five categories:
 5. Lines and hooks
 6. Others 
 
-The table below shows how metiers were grouped to the above categories. 
-
+The table below shows how metiers were grouped to the categories above: 
 
 
 ```{r}
+# Group metiers - inventories
 
-
-# Group metiers - new datacall
-
-d2allg <- mutate(d2all, GearGroup = vapply(Gear, classify_gear, character(1)))
+d2allg <- d2all %>%
+  separate_rows(Gear, sep = "[,;/]\\s*") %>%
+  mutate(Gear = str_trim(Gear),
+         GearGroup = vapply(Gear, classify_gear, character(1)))
 tabgear <- distinct(d2allg, Gear, GearGroup)
-datatable(tabgear, caption = "Grouped metiers in the new datacall")
-
-# Group metiers - old datacall 
-# 
-# d2old <- mutate(d2old, GearGroup = vapply(metier_lvl, classify_gear, character(1)))
-# # TODO - This needs to be checked!!! Function does not capture everything 
-# tabgearold <- distinct(d2old, metier_lvl, GearGroup)
-# datatable(tabgearold, caption = "Grouped metiers in the old datacall")
-
+tabgear %>%
+  datatable(extensions = 'Buttons', rownames = FALSE, 
+            options = list(dom = 'Blfrtip',
+                           buttons = c('copy', 'csv', 'excel'),
+                           lengthMenu = list(c(10,25,50,-1),
+                                             c(10,25,50,"All"))))
 # Group gears - CE - run at the end its taking too long
 # ce <- mutate(ce, GearGroup = vapply(CEmetier6, classify_gear, character(1))) # takes too long
 # tabgearce <- distinct(ce, CEmetier6, GearGroup)
@@ -316,20 +343,27 @@ ices_divisions <- tribble(
   "27.7",     "27.7.g",
   "27.7",     "27.7.h",
   "27.7",     "27.7.j",
+  "27.7",     "27.7.k",
   # 27.8 (Bay of Biscay)
   "27.8",     "27.8.a",
   "27.8",     "27.8.b",
   "27.8",     "27.8.c",
   "27.8",     "27.8.d",
+  "27.8",     "27.8.e",
   # 27.9
   "27.9",     "27.9.a",
+  "27.9",     "27.9.b.1",
+  "27.9",     "27.9.b.2",
+  "27.9",     "27.9.b",
   # 27.10 (Azores)
   "27.10",    "27.10.a",
   "27.10.a",  "27.10.a.1",
   "27.10.a",  "27.10.a.2",
+  "27.10",    "27.10.b",
   # 27.12 (Svalbard/Barents fringe)
   "27.12",    "27.12.a",
   "27.12",    "27.12.b",
+  "27.12",    "27.12.c",
   # 27.14 (Greenland)
   "27.14",    "27.14.a",
   "27.14",    "27.14.b"
@@ -343,7 +377,6 @@ ices_divisions <- tribble(
 ```{r}
 
 # Collapse list cols, keep original row
-
 d2e <- d2allg %>%
   ungroup() %>%
   mutate(.orig_row = row_number()) %>%
@@ -361,22 +394,19 @@ select(-AreaCode) %>%
   # clean up
   select(-AreaCode_collapsed)
 
-# Expand subarea -> subdiv 
+# Expand subarea -> subdiv
 d2div <- d2_expanded %>%
   mutate(
-    is_ices_subarea  = str_detect(AreaCode, "^27\\.\\d+$"),
-    is_ices_division = str_detect(AreaCode, "^27\\.\\d+\\.[a-z]")   # already division
+    AreaCode = str_trim(AreaCode)   # just in case there are stray spaces
   ) %>%
   left_join(ices_divisions, by = c("AreaCode" = "subarea")) %>%
   mutate(
-    AreaCode1 = case_when(
-      is_ices_subarea ~ coalesce(division, AreaCode),
-      TRUE            ~ AreaCode
-    )
+    # if AreaCode matches a subarea in the lookup, use that division,
+    # otherwise keep the original AreaCode
+    AreaCode1 = if_else(!is.na(division), division, AreaCode)
   ) %>%
-  select(-division, -is_ices_subarea, -is_ices_division) %>%
-  distinct(.orig_row, AreaCode, AreaCode_system, .keep_all = TRUE)
-
+  select(-division) %>%
+  distinct(.orig_row, AreaCode1, AreaCode_system, .keep_all = TRUE)
 
 ```
 
@@ -387,16 +417,21 @@ d2div <- d2_expanded %>%
 d2div <- mutate(d2div, AreaCode = ifelse(AreaCode %in% "37.2.1", "GSA 17", AreaCode))
 # Exclude 3271 France (talked with Sebastien)
 # Exclude 27.3.bc 
-d2div <- filter(d2div, !(AreaCode %in% "GSA 3721" & Country %in% "FR"))
-d2div <- filter(d2div, !(AreaCode %in% "27.3.bc" & Country %in% "FR"))
+d2div <- filter(d2div, !(AreaCode %in% "3721" & Country %in% "FR"& Source %in% "2025DC"))
+d2div <- filter(d2div, !(AreaCode %in% "27.3.bc" & Country %in% "FR"& Source %in% "2025DC"))
 # Reassign 3.a to 4.b (rectangle ovelap issue)
-d2div <- mutate(d2div, AreaCode = ifelse(Country %in% "FR" & AreaCode %in% "27.3.a", "27.4.b", AreaCode))
+d2div <- mutate(d2div, AreaCode = ifelse(Country %in% "FR" & AreaCode %in% "27.3.a"& Source %in% "2025DC", "27.4.b", AreaCode))
 
-# Exclude Finland area 27.3.d. (all Baltic) - Email for new submission
-d2div <- filter(d2div, !AreaCode %in% "27.3.d.")
+# Exclude Finland area 27.3.d. (all Baltic) - Email for new submission: Done
+# d2div <- filter(d2div, !AreaCode %in% "27.3.d.")
 
 # Fix Slovenia 
 d2div <- mutate(d2div, AreaCode_system = ifelse(Country %in% "SI", "GSA", AreaCode_system))
+
+
+# Several records in the old datacall don't have area
+naArea <- filter(d2div, is.na(AreaCode))
+d2div <- filter(d2div, !is.na(AreaCode))
 ```
 
 
@@ -405,23 +440,8 @@ d2div <- mutate(d2div, AreaCode_system = ifelse(Country %in% "SI", "GSA", AreaCo
 
 ```{r}
 d2div <- d2div %>%
-  mutate(AreaCode = ifelse(substr(AreaCode, 1, 4) == "27.3", substr(AreaCode, 1, 9), sub("^(([^.]*\\.){2}[^.]*).*", "\\1", AreaCode)))
-# d2divold<- d2divold %>%
-#   mutate(AreaCode = ifelse(substr(AreaCode, 1, 4) == "27.3", substr(AreaCode, 1, 9), sub("^(([^.]*\\.){2}[^.]*).*", "\\1", AreaCode)))
-# 
-# # change naems, keep necessary fields and R bind
-# 
-# d2O <- select(d2divold, country, year, scheme_name, metier_lvl, GearGroup, AreaCode, AreaCode_system, n_trips_sampled, n_trips_total) %>%
-#   distinct()
-# 
-# names(d2O) <- c("Country", "Year", "SamplingScheme", "Gear", "GearGroup", "AreaCode", "AreaCode_system", "NoTripsSampled", "NoTripsTotal")
-# d2N <- select(d2div, Country, Year, SamplingScheme, Gear, GearGroup, AreaCode, AreaCode_system, NoTripsSampled, NoTripsTotal) %>%
-#   distinct()
-# 
-# d2final <- rbind(d2O, d2N)
+  mutate(AreaCode = ifelse(substr(AreaCode1, 1, 4) == "27.3", substr(AreaCode1, 1, 9), sub("^(([^.]*\\.){2}[^.]*).*", "\\1", AreaCode1)))
 
-
-# save(d2div, file = "/ToRc/d2processed.Rdata")
 ```
 
 
@@ -429,63 +449,172 @@ d2div <- d2div %>%
 
 ```{r}
 med <- filter(d2div, AreaCode_system == "GSA")
-# Slovenia is grouped with ICES area codes need to fix 
+# Slovenia is grouped with ICES area codes need to fix: Done
 nor <- filter(d2div, !AreaCode_system == "GSA")
 ```
 
-
+## Plots 
 
 ```{r}
-nor1 <- nor %>%
-  filter(AreaCode_system == "ICES") %>%
-  mutate(
-    is_subarea     = str_detect(AreaCode, "^27\\.\\d+$"),
-    is_division    = str_detect(AreaCode, "^27\\.\\d+\\.[a-z]$"),
-    is_subdivision = str_detect(AreaCode, "^27\\.\\d+\\.[a-z]\\.\\d+")
-  ) %>%
-  left_join(ices_divisions, by = c("AreaCode" = "subarea")) %>%
-  mutate(
-    Area_div = case_when(
-      is_subarea ~ coalesce(division, AreaCode),  # replace subarea with all its divisions
-      TRUE       ~ AreaCode                       # keep divisions/subdivisions as-is
-    )
-  ) %>%
-  select(-division) %>%
-  distinct(.orig_row, Area_div, .keep_all = TRUE)
-
-
+# Determine sampling schemes with logbooks monitoring method 
+d4oldmm <- filter(d4old, `Monitoring method` %in% "Logbook") # old dataset only one and removed either way due to NAs in almost all other variables
+d4mm <- filter(d4, MonitoringMethod %in% "LB")  # Estonia
+remLB <- unique(d4mm$SamplingScheme)
 ```
 
-```{r, fig.dim= c(12, 8)}
+
+### Coverage by year
+
+
+```{r, fig.dim= c(16, 12)}
 
 current_year <- year(Sys.Date())
 
-yearsCell <- nor %>%
-  filter(Year >= 2017 & Year < 2025) %>% 
-  filter(NoTripsSampled != 0 & !Country %in% "EE") %>%
-  group_by(AreaCode, GearGroup) %>%
+# Factors to be plotted in order 
+dfnor <- nor  %>%
+  mutate(AreaCode2 = factor(AreaCode, levels = unique(ices_divisions$division)),
+         GearGroup1 = factor(GearGroup, levels = c("DemTrawl", "DemSeine","Gillnetters", "LinesHooks", "PelSeine", "PelTrawl", "Others")))
+
+# Remove NAFO areas
+dfnor <- filter(dfnor, !is.na(AreaCode2))
+  
+# With zeros - NAs are created by expanding the df
+# These have been left in - Need to check if they correspond to 0 trips sampled
+yearsCellWZ <- dfnor %>%
+  filter(Year >= 2017 & Year < 2025) %>% # 2017 - 2024
+  filter(!SamplingScheme %in% remLB) %>%
+  group_by(AreaCode2, GearGroup1) %>%
   summarise(NoYears = length(unique(Year)))
 
-df <- yearsCell %>%
-  mutate(AreaCode = factor(AreaCode, levels = unique(ices_divisions$division)),
-         GearGroup1 = factor(GearGroup, levels = c("DemTrawl", "Gillnetters", "LinesHooks", "PelSeine", "PelTrawl", "Others")))
-  
-  # aa <- df$AreaCode[is.na(factor(df$AreaCode, levels = unique(ices_divisions$division)))]
-  
-  
-  
+# Without 0's 
+yearsCellWTZ <- dfnor %>%
+  filter(Year >= 2017 & Year < 2025) %>% 
+  filter(!SamplingScheme %in% remLB) %>%
+  filter(NoTripsSampled != 0) %>%
+  group_by(AreaCode2, GearGroup1) %>%
+  summarise(NoYears = length(unique(Year)))
 
-ggplot(df, aes(x = GearGroup, y = AreaCode, fill = factor(NoYears))) +
+
+a <- ggplot(yearsCellWZ, aes(x = GearGroup1, y = AreaCode2, fill = factor(NoYears))) +
   geom_tile(color = "white") +
   scale_fill_viridis_d(name = "Years") +
   labs(
     x = "Gear",
     y = "ICES area",
-    title = "Unique year coverage by gear and ICES area"
+    title = "Unique year coverage by gear and ICES area incl 0 sampled trips"
   ) +
   theme_minimal(base_size = 12) +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+b <- ggplot(yearsCellWTZ, aes(x = GearGroup1, y = AreaCode2, fill = factor(NoYears))) +
+  geom_tile(color = "white") +
+  scale_fill_viridis_d(name = "Years") +
+  labs(
+    x = "Gear",
+    y = "ICES area",
+    title = "Unique year coverage by gear and ICES area excl 0 sampled trips"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+grid.arrange(a, b, ncol=2)
+
 ```
+
+
+## Coverage by sampling scheme 
+
+
+```{r, fig.dim= c(16, 12)}
+# With zeros - NAs are created by expanding the df
+# These have been left in - Need to check if they correspond to 0 trips sampled
+yearsCellWZ <- dfnor %>%
+  filter(Year >= 2017 & Year < 2025) %>% # 2017 - 2024
+  filter(!SamplingScheme %in% remLB) %>%
+  group_by(AreaCode2, GearGroup1) %>%
+  summarise(NoSampScheme = length(unique(SamplingScheme)))
+
+# Without 0's 
+yearsCellWTZ <- dfnor %>%
+  filter(Year >= 2017 & Year < 2025) %>% 
+  filter(!SamplingScheme %in% remLB) %>%
+  filter(NoTripsSampled != 0) %>%
+  group_by(AreaCode2, GearGroup1) %>%
+  summarise(NoSampScheme = length(unique(SamplingScheme)))
+
+
+a <- ggplot(yearsCellWZ, aes(x = GearGroup1, y = AreaCode2, fill = factor(NoSampScheme ))) +
+  geom_tile(color = "white") +
+  scale_fill_viridis_d(name = "Number of Sampling schemes") +
+  labs(
+    x = "Gear",
+    y = "ICES area",
+    title = "Unique sampling schme coverage by gear and ICES area incl 0 sampled trips"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+b <- ggplot(yearsCellWTZ, aes(x = GearGroup1, y = AreaCode2, fill = factor(NoSampScheme ))) +
+  geom_tile(color = "white") +
+  scale_fill_viridis_d(name = "Number of Sampling schemes") +
+  labs(
+    x = "Gear",
+    y = "ICES area",
+    title = "Unique sampling scheme coverage by gear and ICES area excl 0 sampled trips"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+grid.arrange(a, b, ncol=2)
+```
+
+
+```{r, fig.dim= c(16, 12)}
+# With zeros - NAs are created by expanding the df
+# These have been left in - Need to check if they correspond to 0 trips sampled
+yearsCellWZ <- dfnor %>%
+  filter(Source %in% "2025DC") %>%
+  filter(Year >= 2021 & Year < 2025) %>% # 
+  filter(!SamplingScheme %in% remLB) %>%
+  group_by(AreaCode2, GearGroup1, SamplingScheme, Year) %>%
+  summarise(NoTripsSampled = sum(NoTripsSampled, na.rm = TRUE))
+
+# Without 0's 
+yearsCellWTZ <- dfnor %>%
+  filter(Source %in% "2025DC") %>%
+  filter(Year >= 2021 & Year < 2025) %>% # 
+  filter(!SamplingScheme %in% remLB) %>%
+  filter(NoTripsSampled != 0) %>%
+  group_by(AreaCode2, GearGroup1, SamplingScheme, Year) %>%
+  summarise(NoTripsSampled = sum(NoTripsSampled, na.rm = TRUE))
+
+
+a <- ggplot(yearsCellWZ, aes(x = GearGroup1, y = AreaCode2, fill = NoTripsSampled )) +
+  geom_tile(color = "white") +
+  scale_fill_viridis_c(name = "Number of trips sampled") +
+  labs(
+    x = "Gear",
+    y = "ICES area",
+    title = "Unique sampling schme coverage by gear and ICES area incl 0 sampled trips"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+b <- ggplot(yearsCellWTZ, aes(x = GearGroup1, y = AreaCode2, fill = NoTripsSampled)) +
+  geom_tile(color = "white") +
+  scale_fill_viridis_c(name = "Number of trips sampled") +
+  labs(
+    x = "Gear",
+    y = "ICES area",
+    title = "Unique sampling scheme coverage by gear and ICES area excl 0 sampled trips"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+grid.arrange(a, b, ncol=2)
+```
+
+
 
 
 ```{r, fig.dim= c(12, 8)}
@@ -516,13 +645,6 @@ ggplot(yearsCell, aes(x = GearGroup, y = AreaCode, fill = factor(NoYears))) +
 d4samType <- d4 %>%
   group_by(SamplingScheme,MonitoringMethod) %>%
   summarise(Samname = paste0(unique(SamplingSchemeType), collapse = ","))
-# 
-# monmeth <- distinct(d4samType, SamplingScheme, MonitoringMethod, SamplingSchemeType)
-# 
-# 
-# dmerged <- left_join(d2div, monmeth, by = c("SamplingScheme"))
-# 
-# save(dmerged, file = "C:/Users/molla004/OneDrive - Wageningen University & Research/WGCATCH/WGCATCH2025/ToRc/d2merged.Rdata")
 
 
 
