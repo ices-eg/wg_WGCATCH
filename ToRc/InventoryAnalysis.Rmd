@@ -23,10 +23,13 @@ library(gridExtra)
 # New datacall 
 path <- "../ToRc/Data/"
 d2 <- read.csv(paste0(path, "D2.csv"))
+# Need to filter to avoid overlap 
+d2 <- filter(d2, Year > 2020)
 d4 <- read.csv(paste0(path, "D4.csv"))
 
 # Old datacall 
 d2old <- read_xlsx(paste0(path, "eu.2022.04b_dataset.xlsx"), sheet = "Coverage")
+d2old <- filter(d2old, Year >= 2017 & Year <= 2020)
 ## Remove first row - 
 d2old <- d2old[-1, ]
 ## Rename colnames 
@@ -51,12 +54,12 @@ d4old <- read_xlsx(paste0(path, "eu.2022.04b_dataset.xlsx"), sheet = "Sample sch
 d4old <- d4old[-1, ]
 
 # RDBES - CE 
-# ce <- read.csv(paste0(path, "CommercialEffort.csv"))
-## Filter out countries that did not respond to the datacall 
+ce <- read.csv(paste0(path, "CommercialEffort.csv"))
+# Filter out countries that did not respond to the datacall
 # unique(d2$Country)
 # unique(ce$CEvesselFlagCountry)
 
-# ce <- filter(ce, CEvesselFlagCountry %in% unique(d2$Country))
+ce <- filter(ce, CEvesselFlagCountry %in% unique(d2$Country))
 # setdiff(unique(d2$Country), unique(ce$CEvesselFlagCountry)) # med countries and PT-20 excl - correct
 ```
 
@@ -238,6 +241,12 @@ d2all <- mutate(d2all, Country = ifelse(Country %in% "PT-20", "PT",
 
 ```
 
+
+
+# Overview
+
+Number of countries responded in the 2020 and 2025 datacall respectively. 
+
 ```{r}
 d2Tab <- d2all %>%
   group_by(Source) %>%
@@ -251,11 +260,6 @@ d2Tab  %>%
                            lengthMenu = list(c(10,25,50,-1),
                                              c(10,25,50,"All"))))
 ```
-
-
-# Data sources 
-
-Three different data sources were used in this analysis. First, the countries responses following the 2025 datacall, the 2020 datacall and the CE table from the RDBES dataset. 
 
 
 # Data cleaning 
@@ -445,6 +449,23 @@ d2div <- d2div %>%
 ```
 
 
+```{r}
+ce <- mutate(ce, AreaCode = ifelse(substr(CEarea, 1, 4) == "27.3", substr(CEarea, 1, 9), sub("^(([^.]*\\.){2}[^.]*).*", "\\1", CEarea)))
+
+# TODO - This assumption 
+# Filter out records with very low number of trips 
+cef <- filter(ce, CEnumberOfFractionalTrips > 0.1)
+# quantile(ce$CEnumberOfFractionalTrips, probs = seq(0, 1, by = 0.1), na.rm = TRUE)
+# quantile(ce$CEnumberOfDominantTrips, probs = 0.95, na.rm = TRUE)
+# hist(ce$CEnumberOfDominantTrips, breaks = 1000, xlim = c(0,200))
+# hist(log10(ce$CEofficialDaysAtSea + 0.01), breaks = 100)
+# # 
+# ggplot(ce, aes(CEnumberOfDominantTrips,CEnumberOfFractionalTrips )) +
+#   geom_point()
+cef <- distinct(cef, AreaCode, CEmetier6)
+cef <- mutate(cef, GearGroup = vapply(CEmetier6, classify_gear, character(1)))
+
+```
 
 
 ```{r}
@@ -453,7 +474,7 @@ med <- filter(d2div, AreaCode_system == "GSA")
 nor <- filter(d2div, !AreaCode_system == "GSA")
 ```
 
-## Plots 
+## ICES
 
 ```{r}
 # Determine sampling schemes with logbooks monitoring method 
@@ -522,7 +543,7 @@ grid.arrange(a, b, ncol=2)
 ```
 
 
-## Coverage by sampling scheme 
+### Coverage by sampling scheme 
 
 
 ```{r, fig.dim= c(16, 12)}
@@ -568,24 +589,204 @@ b <- ggplot(yearsCellWTZ, aes(x = GearGroup1, y = AreaCode2, fill = factor(NoSam
 grid.arrange(a, b, ncol=2)
 ```
 
-
+### Coverage by sampling effort 
 ```{r, fig.dim= c(16, 12)}
 # With zeros - NAs are created by expanding the df
 # These have been left in - Need to check if they correspond to 0 trips sampled
 yearsCellWZ <- dfnor %>%
-  filter(Source %in% "2025DC") %>%
-  filter(Year >= 2021 & Year < 2025) %>% # 
+  filter(Year >= 2017 & Year < 2025) %>% # 
   filter(!SamplingScheme %in% remLB) %>%
-  group_by(AreaCode2, GearGroup1, SamplingScheme, Year) %>%
+  group_by(AreaCode2, GearGroup1) %>%
   summarise(NoTripsSampled = sum(NoTripsSampled, na.rm = TRUE))
 
 # Without 0's 
 yearsCellWTZ <- dfnor %>%
-  filter(Source %in% "2025DC") %>%
-  filter(Year >= 2021 & Year < 2025) %>% # 
+  filter(Year >= 2017 & Year < 2025) %>% # 
   filter(!SamplingScheme %in% remLB) %>%
   filter(NoTripsSampled != 0) %>%
-  group_by(AreaCode2, GearGroup1, SamplingScheme, Year) %>%
+  group_by(AreaCode2, GearGroup1) %>%
+  summarise(NoTripsSampled = sum(NoTripsSampled, na.rm = TRUE))
+
+
+a <- ggplot(yearsCellWZ, aes(x = GearGroup1, y = AreaCode2, fill = NoTripsSampled )) +
+  geom_tile(color = "white") +
+  scale_fill_viridis_c(name = "Number of trips sampled") +
+  labs(
+    x = "Gear",
+    y = "ICES area",
+    title = "Unique sampling schme coverage by gear and ICES area incl 0 sampled trips"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+b <- ggplot(yearsCellWTZ, aes(x = GearGroup1, y = AreaCode2, fill = NoTripsSampled)) +
+  geom_tile(color = "white") +
+  scale_fill_viridis_c(name = "Number of trips sampled") +
+  labs(
+    x = "Gear",
+    y = "ICES area",
+    title = "Unique sampling scheme coverage by gear and ICES area excl 0 sampled trips"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+grid.arrange(a, b, ncol=2)
+```
+
+### Comparison with CE
+
+```{r, fig.dim= c(16, 12)}
+dfnornew <- filter(dfnor, Source %in% "2025DC") %>%
+  filter(Year >= 2021 & Year < 2025) %>% # 
+  filter(!SamplingScheme %in% remLB) %>%
+  filter(NoTripsSampled != 0) 
+cemerg <- left_join(cef, dfnornew, by = c("AreaCode" = "AreaCode2", "GearGroup" = "GearGroup1"))
+
+cefin <- distinct(cemerg, AreaCode, GearGroup, .orig_row) %>%
+  mutate(Sampled = ifelse(is.na(.orig_row), "No", "Yes")) %>%
+  distinct(AreaCode, GearGroup, Sampled) %>%
+   mutate(GearGroup = factor(GearGroup, levels = c("DemTrawl", "DemSeine","Gillnetters", "LinesHooks", "PelSeine", "PelTrawl", "Others")),
+          AreaCode = factor(AreaCode, levels = unique(ices_divisions$division)))
+
+
+ggplot(cefin , aes(x = GearGroup, y = AreaCode, fill = Sampled)) +
+  geom_tile(color = "white") +
+  scale_fill_viridis_d(name = "SAmpled") +
+  labs(
+    x = "Gear",
+    y = "ICES area",
+    title = "Year * gear combination sampled"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+```
+
+
+
+## Med
+
+### Coverage by year
+
+```{r, fig.dim= c(16, 12)}
+
+# Factors to be plotted in order 
+dfmed<- med  %>%
+  mutate(AreaCode2 = factor(AreaCode, levels = paste0("GSA ", seq(1:30))),
+         GearGroup1 = factor(GearGroup, levels = c("DemTrawl", "DemSeine","Gillnetters", "LinesHooks", "PelSeine", "PelTrawl", "Others")))
+
+# Remove NAFO areas
+dfmed <- filter(dfmed, !is.na(AreaCode2))
+  
+# With zeros - NAs are created by expanding the df
+# These have been left in - Need to check if they correspond to 0 trips sampled
+yearsCellWZ <- dfmed %>%
+  filter(Year >= 2017 & Year < 2025) %>% # 2017 - 2024
+  filter(!SamplingScheme %in% remLB) %>%
+  group_by(AreaCode2, GearGroup1) %>%
+  summarise(NoYears = length(unique(Year)))
+
+# Without 0's 
+yearsCellWTZ <- dfmed %>%
+  filter(Year >= 2017 & Year < 2025) %>% 
+  filter(!SamplingScheme %in% remLB) %>%
+  filter(NoTripsSampled != 0) %>%
+  group_by(AreaCode2, GearGroup1) %>%
+  summarise(NoYears = length(unique(Year)))
+
+
+a <- ggplot(yearsCellWZ, aes(x = GearGroup1, y = AreaCode2, fill = factor(NoYears))) +
+  geom_tile(color = "white") +
+  scale_fill_viridis_d(name = "Years") +
+  labs(
+    x = "Gear",
+    y = "GSA",
+    title = "Unique year coverage by gear and ICES area incl 0 sampled trips"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+b <- ggplot(yearsCellWTZ, aes(x = GearGroup1, y = AreaCode2, fill = factor(NoYears))) +
+  geom_tile(color = "white") +
+  scale_fill_viridis_d(name = "Years") +
+  labs(
+    x = "Gear",
+    y = "GSA",
+    title = "Unique year coverage by gear and ICES area excl 0 sampled trips"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+grid.arrange(a, b, ncol=2)
+
+
+
+```
+
+### Coverage by sampling scheme 
+
+```{r, fig.dim= c(16, 12)}
+# With zeros - NAs are created by expanding the df
+# These have been left in - Need to check if they correspond to 0 trips sampled
+yearsCellWZ <- dfmed %>%
+  filter(Year >= 2017 & Year < 2025) %>% # 2017 - 2024
+  filter(!SamplingScheme %in% remLB) %>%
+  group_by(AreaCode2, GearGroup1) %>%
+  summarise(NoSampScheme = length(unique(SamplingScheme)))
+
+# Without 0's 
+yearsCellWTZ <- dfmed %>%
+  filter(Year >= 2017 & Year < 2025) %>% 
+  filter(!SamplingScheme %in% remLB) %>%
+  filter(NoTripsSampled != 0) %>%
+  group_by(AreaCode2, GearGroup1) %>%
+  summarise(NoSampScheme = length(unique(SamplingScheme)))
+
+
+a <- ggplot(yearsCellWZ, aes(x = GearGroup1, y = AreaCode2, fill = factor(NoSampScheme ))) +
+  geom_tile(color = "white") +
+  scale_fill_viridis_d(name = "Number of Sampling schemes") +
+  labs(
+    x = "Gear",
+    y = "GSA",
+    title = "Unique sampling schme coverage by gear and ICES area incl 0 sampled trips"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+b <- ggplot(yearsCellWTZ, aes(x = GearGroup1, y = AreaCode2, fill = factor(NoSampScheme ))) +
+  geom_tile(color = "white") +
+  scale_fill_viridis_d(name = "Number of Sampling schemes") +
+  labs(
+    x = "Gear",
+    y = "GSA",
+    title = "Unique sampling scheme coverage by gear and ICES area excl 0 sampled trips"
+  ) +
+  theme_minimal(base_size = 12) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+grid.arrange(a, b, ncol=2)
+```
+
+
+### Coverage by sampling effort 
+
+```{r, fig.dim= c(16, 12)}
+# With zeros - NAs are created by expanding the df
+# These have been left in - Need to check if they correspond to 0 trips sampled
+yearsCellWZ <- dfmed %>%
+  filter(Year >= 2017 & Year < 2025) %>% # 
+  filter(!SamplingScheme %in% remLB) %>%
+  group_by(AreaCode2, GearGroup1) %>%
+  summarise(NoTripsSampled = sum(NoTripsSampled, na.rm = TRUE))
+
+# Without 0's 
+yearsCellWTZ <- dfmed %>%
+  filter(Year >= 2017 & Year < 2025) %>% # 
+  filter(!SamplingScheme %in% remLB) %>%
+  filter(NoTripsSampled != 0) %>%
+  group_by(AreaCode2, GearGroup1) %>%
   summarise(NoTripsSampled = sum(NoTripsSampled, na.rm = TRUE))
 
 
@@ -617,36 +818,11 @@ grid.arrange(a, b, ncol=2)
 
 
 
-```{r, fig.dim= c(12, 8)}
-current_year <- year(Sys.Date())
-
-yearsCell <- med %>%
-  filter(Year >= 2017 & Year < 2025) %>% 
-  group_by(AreaCode, GearGroup) %>%
-  summarise(NoYears = length(unique(Year)))
-  
-  
-ggplot(yearsCell, aes(x = GearGroup, y = AreaCode, fill = factor(NoYears))) +
-  geom_tile(color = "white") +
-  scale_fill_viridis_d(name = "Years") + 
-  labs(
-    x = "Gear",
-    y = "GSA",
-    title = "Unique year coverage by gear and GSA"
-  ) +
-  theme_minimal(base_size = 12) +
-  theme(axis.text.x = element_text(angle = 45, hjust = 1))
-```
-
 
 ```{r}
-
-
 d4samType <- d4 %>%
   group_by(SamplingScheme,MonitoringMethod) %>%
   summarise(Samname = paste0(unique(SamplingSchemeType), collapse = ","))
-
-
 
 ```
 
