@@ -1,0 +1,877 @@
+---
+title: "National data for the stock coordinator"
+date: "Report date `r format(Sys.Date())`"
+output:
+  html_document:
+    toc: true
+    toc_float:
+      collapsed: false
+    toc_depth: 2
+    number_sections: true
+    theme:
+      version: 5
+      primary: "#2a78d6"
+      base_font: "Segoe UI, system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif"
+      heading_font: "Segoe UI, system-ui, -apple-system, Roboto, Helvetica, Arial, sans-serif"
+      code_font: "Consolas, Menlo, monospace"
+      font_scale: 0.95
+params:
+  input: "H8ExampleEE1"
+  repoDir: "../.."
+  stockCode: "spr.27.22-32"
+  species: 126425
+  stockAreas: !r c("27.3.b.23", "27.3.c.22", "27.3.d.24", "27.3.d.25", "27.3.d.26", "27.3.d.27", "27.3.d.28.1", "27.3.d.28.2", "27.3.d.29", "27.3.d.30", "27.3.d.31", "27.3.d.32")
+  filterToStock: TRUE
+  lengthBin: 5
+  topMetiers: 7
+---
+
+```{css, echo = FALSE}
+:root {
+  --ink: #1f2933;
+  --ink-2: #4b5563;
+  --muted: #6b7280;
+  --line: #e5e7eb;
+  --surface: #ffffff;
+  --surface-2: #f6f8fb;
+  --accent: #2a78d6;
+  --accent-soft: #e8f1fc;
+  --warn-soft: #fdf1e8;
+}
+body { color: var(--ink); background: var(--surface); line-height: 1.55; }
+.main-container { max-width: 1180px; }
+h1.title { font-weight: 700; font-size: 1.9rem; margin-top: 1.2rem; letter-spacing: -0.01em; }
+h4.date { color: var(--muted); font-size: 0.9rem; font-weight: 400; margin-bottom: 1.2rem; }
+h1:not(.title) {
+  font-size: 1.45rem; font-weight: 650; margin-top: 2.6rem; padding-bottom: 0.4rem;
+  border-bottom: 2px solid var(--line);
+}
+h1 .header-section-number { color: var(--accent); margin-right: 0.35rem; }
+h2 { font-size: 1.15rem; font-weight: 600; margin-top: 1.8rem; }
+
+/* banner */
+.banner {
+  display: flex; gap: 1.6rem; align-items: center; flex-wrap: wrap;
+  background: linear-gradient(135deg, #1f4f8f 0%, #2a78d6 100%);
+  color: #fff; border-radius: 12px; padding: 1.2rem 1.6rem; margin: 0.4rem 0 1rem;
+}
+.banner-year { display: flex; flex-direction: column; padding-right: 1.6rem;
+  border-right: 1px solid rgba(255,255,255,0.35); }
+.banner-year span { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; opacity: 0.85; }
+.banner-year strong { font-size: 2.6rem; line-height: 1; font-weight: 700; }
+.banner-meta div { font-size: 0.95rem; opacity: 0.95; }
+.banner-meta .banner-stock { font-size: 1.35rem; font-weight: 650; opacity: 1; margin-bottom: 0.15rem; }
+
+/* key figure tiles */
+.tiles { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 0.75rem; margin: 0 0 1.4rem; }
+.tile { background: var(--surface-2); border: 1px solid var(--line); border-radius: 10px;
+  padding: 0.75rem 0.9rem; }
+.tile-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+.tile-value { font-size: 1.55rem; font-weight: 650; color: var(--ink); line-height: 1.25; }
+.tile-note { font-size: 0.8rem; color: var(--ink-2); }
+
+/* tables */
+.table { font-size: 0.85rem; margin-bottom: 1.6rem; border-color: var(--line); }
+.table caption { caption-side: top; color: var(--ink-2); font-size: 0.85rem; padding: 0 0 0.5rem; text-align: left; }
+.table thead th { background: var(--surface-2); color: var(--ink); font-weight: 600;
+  border-bottom: 2px solid var(--line) !important; white-space: nowrap; vertical-align: bottom; }
+.table td { vertical-align: top; padding: 0.35rem 0.6rem; }
+.table-striped > tbody > tr:nth-of-type(odd) > * { --bs-table-accent-bg: #fafbfc; }
+.overview td:first-child { font-weight: 600; white-space: nowrap; width: 15rem; color: var(--ink-2); }
+.overview tr.groupRow td, .overview td[colspan] {
+  background: var(--accent-soft) !important; color: #1f4f8f !important; font-weight: 650;
+  text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.06em; }
+.scroll-wrap { overflow-x: auto; margin-bottom: 1.6rem; }
+.scroll-wrap .table { margin-bottom: 0; }
+
+/* figures */
+.figure, p > img, .section > p > img {
+  display: block; margin: 0.6rem 0 1.6rem; border: 1px solid var(--line); border-radius: 10px;
+  padding: 0.4rem; background: #fff; max-width: 100%; height: auto; }
+
+/* notes */
+.note { background: var(--accent-soft); border-left: 4px solid var(--accent);
+  border-radius: 6px; padding: 0.6rem 0.9rem; margin: 0.8rem 0 1.2rem; color: var(--ink-2); font-size: 0.9rem; }
+.note p:last-child { margin-bottom: 0; }
+
+/* toc */
+#TOC { font-size: 0.88rem; border: none; }
+.tocify .list-group-item { border: none; padding: 0.3rem 0.8rem; }
+.tocify .list-group-item.active { background: var(--accent-soft); color: #1f4f8f; font-weight: 600; }
+```
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = TRUE,
+                      fig.width = 9, fig.height = 4, dpi = 144,
+                      dev = "ragg_png", out.width = "100%")
+library(data.table)
+library(ggplot2)
+
+# RDBEScore from the repository if available, otherwise the installed package
+if (requireNamespace("devtools", quietly = TRUE) &&
+    file.exists(file.path(params$repoDir, "DESCRIPTION"))) {
+  devtools::load_all(params$repoDir, quiet = TRUE)
+} else {
+  library(RDBEScore)
+}
+
+# fixed categorical order (blue, orange, aqua, yellow, magenta, green, violet, red)
+seriesCols <- c("#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4",
+                "#008300", "#6250d6", "#e34948")
+# label ink on each series colour (dark on the light fills)
+seriesInk <- c("white", "white", "#1f2933", "#1f2933", "#1f2933",
+               "white", "white", "white")
+otherCol <- "#b4b2a9"
+mainCol <- seriesCols[1]
+ink <- "#1f2933"
+ink2 <- "#4b5563"
+muted <- "#6b7280"
+fontFam <- "Segoe UI"
+
+theme_set(theme_minimal(base_size = 12, base_family = fontFam) +
+            theme(plot.title = element_text(face = "bold", size = 13, colour = ink),
+                  plot.subtitle = element_text(size = 10.5, colour = muted,
+                                               margin = margin(b = 8)),
+                  plot.title.position = "plot",
+                  plot.caption.position = "plot",
+                  axis.text = element_text(colour = muted, size = 9.5),
+                  axis.title = element_text(colour = ink2, size = 10),
+                  panel.grid.major = element_line(colour = "#ececec", linewidth = 0.4),
+                  panel.grid.minor = element_blank(),
+                  panel.grid.major.x = element_blank(),
+                  strip.text = element_text(hjust = 0, face = "bold", colour = ink, size = 10),
+                  legend.position = "top",
+                  legend.justification = "left",
+                  legend.text = element_text(colour = ink2, size = 9.5),
+                  legend.key.size = unit(0.9, "lines"),
+                  plot.background = element_rect(fill = "white", colour = NA),
+                  plot.margin = margin(10, 14, 8, 10)))
+update_geom_defaults("text", list(family = fontFam, colour = ink2, size = 3.1))
+
+# html tables with kableExtra. Column names are shown with spaces.
+kbl <- function(x, caption = NULL, escape = TRUE, class = NULL, ...) {
+  k <- kableExtra::kbl(x, format = "html", caption = caption, escape = escape,
+                       col.names = gsub("_", " ", names(x)),
+                       format.args = list(big.mark = ","), ...)
+  k <- kableExtra::kable_styling(k, bootstrap_options = c("striped", "hover"),
+                                 full_width = TRUE, position = "left", font_size = NULL)
+  if (!is.null(class)) k <- sub("<table class=\"", paste0("<table class=\"", class, " "), k)
+  structure(paste0("<div class=\"scroll-wrap\">", k, "</div>"), class = "knit_asis")
+}
+show <- function(k) cat(k, "\n\n")
+
+pct <- function(n, N) {
+  N <- rep_len(N, length(n))
+  out <- round(100 * n / N, 1)
+  out[!(N > 0)] <- NA_real_
+  out
+}
+nOfNpct <- function(n, N, digits = 0) {
+  paste0(format(round(n, digits), big.mark = ",", trim = TRUE), "/",
+         format(round(N, digits), big.mark = ",", trim = TRUE),
+         " (", pct(n, N), "%)")
+}
+fmtT <- function(x) format(round(x, 1), big.mark = ",", nsmall = 1, trim = TRUE)
+fmtN <- function(x) format(x, big.mark = ",", trim = TRUE)
+listCounts <- function(x, unit = "") {
+  x <- x[!is.na(x) & x != ""]
+  if (length(x) == 0) return("none")
+  tab <- sort(table(x), decreasing = TRUE)
+  paste0(names(tab), " (", as.integer(tab), unit, ")", collapse = ", ")
+}
+listTonnes <- function(group, t) {
+  d <- data.table(g = group, t = t)[!is.na(g) & g != "", .(t = sum(t)), by = g][order(-t)]
+  if (nrow(d) == 0) return("none")
+  paste0(d$g, " (", fmtT(d$t), " t)", collapse = ", ")
+}
+nr <- function(x) if (is.null(x)) 0L else nrow(x)
+pctLab <- function(x) paste0(round(100 * x), "%")
+```
+
+```{r load}
+# ---- input -----------------------------------------------------------------
+# A packaged RDBESDataObject (by name), an .rds file holding one, or the
+# RDBES download (folder or zip files) read with createRDBESDataObject()
+loadInput <- function(input) {
+  if (grepl("\\.rds$", input, ignore.case = TRUE)) {
+    return(readRDS(input))
+  }
+  if (file.exists(input)) {
+    return(createRDBESDataObject(input = input))
+  }
+  get(input)
+}
+raw <- loadInput(params$input)
+validateRDBESDataObject(raw, strict = TRUE)
+
+hier <- unique(raw$DE$DEhierarchy)
+if (length(hier) != 1) {
+  stop("The input holds more than one hierarchy (", paste(hier, collapse = ", "),
+       "). This report is for one hierarchy.")
+}
+dataYear <- unique(raw$DE$DEyear)
+if (length(dataYear) != 1) {
+  stop("The input holds more than one year (", paste(dataYear, collapse = ", "),
+       "). This report is for one data year.")
+}
+country <- unique(raw$SD$SDctry)
+
+# ---- filter to the stock ---------------------------------------------------
+# Species: SAspeCode (CS) and CLspecCode (CL).
+# Area: the CS table that holds the fishing area of the hierarchy (FOarea in
+# hierarchies 1, 2, 3, 10 and 13, LEarea otherwise), CLarea and CEarea.
+# SAarea is not used because it is often left empty.
+hierTabs <- getTablesInRDBESHierarchy(hier, includeTablesNotInSampHier = FALSE)
+csAreaField <- if (hier %in% c(1, 2, 3, 10, 13)) "FOarea" else "LEarea"
+dat <- raw
+if (isTRUE(params$filterToStock)) {
+  dat <- filterRDBESDataObject(dat, fieldsToFilter = c("SAspeCode", "CLspecCode"),
+                               valuesToFilter = params$species, killOrphans = TRUE)
+  areaFields <- c(csAreaField, "CLarea", "CEarea")
+  areaFields <- areaFields[vapply(areaFields, function(f) {
+    nr(dat[[substr(f, 1, 2)]]) > 0
+  }, logical(1))]
+  dat <- filterRDBESDataObject(dat, fieldsToFilter = areaFields,
+                               valuesToFilter = params$stockAreas, killOrphans = TRUE)
+}
+presentTabs <- hierTabs[vapply(hierTabs, function(t) nr(dat[[t]]) > 0, logical(1))]
+stageTabs <- setdiff(presentTabs, c("DE", "SD", "FM", "BV"))
+psuTab <- stageTabs[1]
+unitTab <- stageTabs[max(which(stageTabs == "SS")) - 1]   # stage directly above SS
+
+# ---- species name ----------------------------------------------------------
+speciesName <- wormsAphiaRecord$scientificname[match(params$species,
+                                                     wormsAphiaRecord$AphiaID)]
+if (length(speciesName) == 0 || is.na(speciesName)) speciesName <- "not in wormsAphiaRecord"
+
+# ---- samples with their domain ---------------------------------------------
+# getSampleUnits(): one row per lowest-level landings sample with year,
+# quarter, month, area, rectangle, metier6 and the live weight (kg) of the
+# catch fraction it represents (xSample)
+su <- getSampleUnits(dat, species = params$species, catchCat = "Lan", strict = TRUE)
+suLog <- attr(su, "ratioLog")
+su[, SAid := as.numeric(SAid)]
+
+# ---- fish level biological data --------------------------------------------
+BV <- if (nr(dat$BV) > 0) copy(dat$BV) else NULL
+FM <- if (nr(dat$FM) > 0) copy(dat$FM) else NULL
+fish <- NULL
+if (!is.null(BV)) {
+  BV[, SAid := as.numeric(SAid)]
+  BV[, value := BVvalueMeas]
+  # lengths to mm
+  isLen <- grepl("^Length", BV$BVtypeMeas)
+  isCm <- isLen & grepl("cm", BV$BVvalUnitScale, ignore.case = TRUE)
+  BV[isCm, value := as.character(as.numeric(value) * 10)]
+  BV[isLen, BVtypeMeas := "Length"]
+  fish <- dcast(BV, SAid + FMid + BVfishId ~ BVtypeMeas, value.var = "value",
+                fun.aggregate = function(x) x[1], fill = NA)
+  for (v in intersect(c("Age", "Length", "WeightMeasured"), names(fish))) {
+    set(fish, j = v, value = suppressWarnings(as.numeric(fish[[v]])))
+  }
+  # length from the FM class when the fish has no own length (lower hierarchy A)
+  if (!is.null(FM) && "FMid" %in% names(fish)) {
+    fmL <- FM[grepl("^Length", FMtypeMeas), .(FMid, fmLength = as.numeric(FMclassMeas))]
+    fish <- merge(fish, fmL, by = "FMid", all.x = TRUE)
+    if (!"Length" %in% names(fish)) fish[, Length := NA_real_]
+    fish[is.na(Length), Length := fmLength]
+    fish[, fmLength := NULL]
+  }
+}
+
+# length frequencies: FM counts, else individual BV lengths
+lenFreq <- data.table(SAid = numeric(0), Length = numeric(0), n = numeric(0))
+if (!is.null(FM)) {
+  lenFreq <- FM[grepl("^Length", FMtypeMeas),
+                .(SAid = as.numeric(SAid), Length = as.numeric(FMclassMeas),
+                  n = as.numeric(FMnumAtUnit))]
+}
+if (!is.null(fish) && "Length" %in% names(fish)) {
+  lenFreq <- rbind(lenFreq,
+                   fish[!SAid %in% lenFreq$SAid & !is.na(Length),
+                        .(n = as.numeric(.N)), by = .(SAid, Length)])
+}
+
+domainCols <- c("SAid", "quarter", "month", "area", "metier6", unitTabId <- paste0(unitTab, "id"))
+lenFreq <- merge(lenFreq, su[, ..domainCols], by = "SAid")
+if (!is.null(fish)) fish <- merge(fish, su[, ..domainCols], by = "SAid")
+
+perSample <- su[, .(SAid)]
+perSample <- merge(perSample, lenFreq[, .(Fish_measured = sum(n)), by = SAid],
+                   by = "SAid", all.x = TRUE)
+if (!is.null(fish) && "Age" %in% names(fish)) {
+  perSample <- merge(perSample, fish[!is.na(Age), .(Fish_aged = .N), by = SAid],
+                     by = "SAid", all.x = TRUE)
+} else {
+  perSample[, Fish_aged := 0]
+}
+perSample[is.na(Fish_measured), Fish_measured := 0]
+perSample[is.na(Fish_aged), Fish_aged := 0]
+su <- merge(su, perSample, by = "SAid")
+
+# ---- landings and effort ---------------------------------------------------
+CL <- if (nr(dat$CL) > 0) copy(dat$CL) else NULL
+CE <- if (nr(dat$CE) > 0) copy(dat$CE) else NULL
+if (!is.null(CL)) CL[, t := CLsciWeight / 1000]
+
+# ---- key figures -----------------------------------------------------------
+fishMeasured <- sum(su$Fish_measured)
+fishAged <- sum(su$Fish_aged)
+nSamples <- nrow(su[include == TRUE])
+landT <- if (!is.null(CL)) sum(CL[CLcatchCat == "Lan", t]) else NA
+```
+
+```{r banner, results = "asis"}
+tile <- function(label, value, note = "") {
+  paste0("<div class=\"tile\"><div class=\"tile-label\">", label,
+         "</div><div class=\"tile-value\">", value,
+         "</div><div class=\"tile-note\">", note, "</div></div>")
+}
+sampQ <- if (nSamples > 0) paste0("Q", sort(unique(su[include == TRUE, quarter])), collapse = ", ") else "none"
+cat("<div class=\"banner\">",
+    "<div class=\"banner-year\"><span>Data year</span><strong>", dataYear, "</strong></div>",
+    "<div class=\"banner-meta\">",
+    "<div class=\"banner-stock\">", params$stockCode, "</div>",
+    "<div><em>", speciesName, "</em> &middot; AphiaID ", params$species, "</div>",
+    "<div>Country ", paste(country, collapse = ", "), " &middot; Hierarchy ", hier,
+    " &middot; Institute ", paste(unique(dat$SD$SDinst), collapse = ", "), "</div>",
+    "</div></div>", sep = "")
+cat("<div class=\"tiles\">",
+    tile("Landings", if (is.na(landT)) "no CL" else paste(fmtT(landT), "t"), "CL, catch category Lan"),
+    tile("Landings samples", fmtN(nSamples), paste("in", sampQ)),
+    tile("Fish measured", fmtN(fishMeasured), "length"),
+    tile("Fish aged", fmtN(fishAged),
+         "age"),
+    "</div>", sep = "")
+```
+
+# Overview
+
+```{r overview}
+item <- function(Group, Item, Value) data.table(Group = Group, Item = Item, Value = Value)
+
+DE <- dat$DE
+SD <- dat$SD
+stageText <- vapply(stageTabs, function(tb) {
+  d <- dat[[tb]]
+  m <- d[[paste0(tb, "selectMeth")]]
+  paste0("<b>", tb, "</b> ", paste0(unique(m), " (", classifySelectionMethod(unique(m)), ")",
+                                    collapse = ", "))
+}, character(1))
+
+csQuarters <- if (nrow(su) > 0) {
+  q <- su[, .N, by = quarter][order(quarter)]
+  paste0("Q", q$quarter, " (", q$N, " samples)", collapse = ", ")
+} else "none"
+csMonths <- if (nrow(su) > 0) paste(sort(unique(su$month)), collapse = ", ") else "none"
+
+# sampling dates of the unit directly above SS, else of the PSU
+dateField <- c(FO = "FOendDate", LE = "LEdate", FT = "FTarvDate", OS = "OSsamDate")
+dateTab <- intersect(c(unitTab, psuTab), names(dateField))[1]
+dates <- if (!is.na(dateTab)) as.IDate(dat[[dateTab]][[dateField[[dateTab]]]]) else as.IDate(NA)
+dateRange <- if (all(is.na(dates))) "not recorded" else
+  paste(format(min(dates, na.rm = TRUE)), "to", format(max(dates, na.rm = TRUE)))
+
+clQuarters <- if (!is.null(CL)) listTonnes(paste0("Q", CL$CLquar), CL$t) else "no CL"
+bvTypes <- if (!is.null(dat$BV)) listCounts(dat$BV$BVtypeMeas) else "none"
+fmTypes <- if (!is.null(dat$FM)) listCounts(dat$FM$FMtypeMeas) else "none"
+
+slInfo <- if (nr(dat$SL) > 0) {
+  vapply(seq_len(nrow(dat$SL)), function(i) {
+    taxa <- dat$IS[SLid == dat$SL$SLid[i], ISsppCode]
+    paste0(dat$SL$SLspeclistName[i], " (", dat$SL$SLcatchFrac[i], ", ",
+           length(taxa), " taxa, stock species ",
+           if (params$species %in% taxa) "included" else "not included", ")")
+  }, character(1))
+} else "none"
+
+vesselIds <- unique(unlist(lapply(stageTabs, function(tb) {
+  if ("VDid" %in% names(dat[[tb]])) dat[[tb]]$VDid
+})))
+vesselIds <- vesselIds[!is.na(vesselIds)]
+vesLen <- if (nr(dat$VD) > 0) listCounts(dat$VD[VDid %in% vesselIds, VDlenCat], " vessels") else "none"
+
+g1 <- "Stock and data"
+g2 <- "Sampling design"
+g3 <- "Coverage"
+g4 <- "Data volume"
+ov <- rbind(
+  item(g1, "Data year", as.character(dataYear)),
+  item(g1, "Country", paste(country, collapse = ", ")),
+  item(g1, "Institute", paste(unique(SD$SDinst), collapse = ", ")),
+  item(g1, "Stock", params$stockCode),
+  item(g1, "Species", paste0("<em>", speciesName, "</em> (AphiaID ", params$species, ")")),
+  item(g1, "Stock area", paste(params$stockAreas, collapse = ", ")),
+  item(g2, "Hierarchy", paste0(hier, " (", paste(presentTabs, collapse = " &rarr; "), ")")),
+  item(g2, "Sampling scheme", paste(unique(DE$DEsampScheme), collapse = ", ")),
+  item(g2, "Sampling scheme type", paste(unique(DE$DEsampSchemeType), collapse = ", ")),
+  item(g2, "DE strata", paste(unique(DE$DEstratumName), collapse = ", ")),
+  item(g2, "Primary sampling unit", psuTab),
+  item(g2, "Selection methods", paste(stageText, collapse = "<br>")),
+  item(g2, "Lower hierarchy", listCounts(dat$SA$SAlowHierarchy, " samples")),
+  item(g2, "Catch fractions sampled (SScatchFra)", listCounts(dat$SS$SScatchFra, " SS")),
+  item(g2, "Zeros recorded (SSuseCalcZero)", listCounts(dat$SS$SSuseCalcZero, " SS")),
+  item(g2, "Species list", paste(slInfo, collapse = "<br>")),
+  item(g3, "Temporal coverage CS", paste0(csQuarters, "<br>months ", csMonths,
+                                          "<br>", dateRange)),
+  item(g3, "Temporal coverage CL", clQuarters),
+  item(g3, "Spatial coverage CS", listCounts(su$area, " samples")),
+  item(g3, "Spatial coverage CL", if (!is.null(CL)) listTonnes(CL$CLarea, CL$t) else "no CL"),
+  item(g3, "Spatial coverage CE", if (!is.null(CE)) {
+    ceA <- CE[, .(d = sum(CEsciDaySea, na.rm = TRUE)), by = CEarea][order(-d)]
+    paste0(ceA$CEarea, " (", fmtN(ceA$d), " days at sea)", collapse = ", ")
+  } else "no CE"),
+  item(g3, "Metiers CS", listCounts(su$metier6, " samples")),
+  item(g3, "Metiers CL", if (!is.null(CL)) listTonnes(CL$CLmetier6, CL$t) else "no CL"),
+  item(g3, "Catch categories CL", if (!is.null(CL))
+    listTonnes(paste(CL$CLcatchCat, CL$CLlandCat), CL$t) else "no CL"),
+  item(g4, "Landings (CL, Lan)", if (!is.na(landT)) paste(fmtT(landT), "t") else "no CL"),
+  item(g4, "Effort (CE)", if (!is.null(CE))
+    paste0(fmtN(sum(CE$CEsciDaySea, na.rm = TRUE)), " days at sea, ",
+           fmtN(sum(CE$CEnumDomTrip, na.rm = TRUE)), " trips") else "no CE"),
+  item(g4, "Vessels sampled", paste0(length(vesselIds), ", ", vesLen)),
+  item(g4, "Landings samples", as.character(nSamples)),
+  item(g4, "Fish measured", fmtN(fishMeasured)),
+  item(g4, "Fish aged", fmtN(fishAged)),
+  item(g4, "Measurements in FM", fmTypes),
+  item(g4, "Measurements in BV", bvTypes)
+)
+k <- kableExtra::kbl(ov[, .(Item, Value)], format = "html", escape = FALSE)
+k <- kableExtra::kable_styling(k, bootstrap_options = "hover", full_width = TRUE, position = "left")
+for (g in unique(ov$Group)) {
+  w <- which(ov$Group == g)
+  k <- kableExtra::pack_rows(k, g, min(w), max(w), label_row_css = "")
+}
+k <- sub("<table class=\"", "<table class=\"overview ", k)
+structure(paste0("<div class=\"scroll-wrap\">", k, "</div>"), class = "knit_asis")
+```
+
+
+```{r excluded, results = "asis"}
+excl <- suLog[level == "exclusion"]
+if (nrow(excl) > 0) {
+  show(kbl(excl[, .(Reason = message, Samples = n)],
+           caption = "Samples excluded from the landings samples."))
+}
+```
+
+# Sampling design
+
+```{r design}
+des <- rbindlist(lapply(stageTabs, function(tb) {
+  d <- dat[[tb]]
+  g <- function(s) if (paste0(tb, s) %in% names(d)) d[[paste0(tb, s)]] else rep(NA, nrow(d))
+  samp <- g("samp")
+  meth <- g("selectMeth")
+  strat <- g("stratification")
+  nTot <- suppressWarnings(as.numeric(g("numTotal")))
+  nSmp <- suppressWarnings(as.numeric(g("numSamp")))
+  rng <- function(x) if (all(is.na(x))) "" else
+    if (min(x, na.rm = TRUE) == max(x, na.rm = TRUE)) as.character(min(x, na.rm = TRUE)) else
+      paste0(min(x, na.rm = TRUE), "&ndash;", max(x, na.rm = TRUE))
+  data.table(
+    Stage = paste0("<b>", tb, "</b>"),
+    Records = nrow(d),
+    Not_sampled = nOfNpct(sum(samp == "N", na.rm = TRUE), nrow(d)),
+    Reasons_not_sampled = listCounts(g("noSampReason")),
+    Selection_method = listCounts(meth),
+    Design_class = listCounts(classifySelectionMethod(meth)),
+    Stratified = nOfNpct(sum(strat == "Y", na.rm = TRUE), nrow(d)),
+    Strata = paste(unique(g("stratumName")), collapse = ", "),
+    numTotal = rng(nTot),
+    numSamp = rng(nSmp)
+  )
+}))
+kbl(des, escape = FALSE,
+    caption = paste0("Sampling stages of hierarchy ", hier,
+                     ". Design class from classifySelectionMethod(). numTotal and numSamp are the range within the stage."))
+```
+
+```{r designStrata}
+# One row per record of each sampling stage, nested under its parent record
+# (depth first), grouped by the stratum of the primary sampling unit.
+nodes <- rbindlist(lapply(seq_along(stageTabs), function(k) {
+  tb <- stageTabs[k]
+  d <- dat[[tb]]
+  g <- function(s) if (paste0(tb, s) %in% names(d)) d[[paste0(tb, s)]] else rep(NA, nrow(d))
+  parCol <- if (k > 1) paste0(stageTabs[k - 1], "id") else NA
+  par <- if (k > 1 && parCol %in% names(d)) paste0(stageTabs[k - 1], ":", d[[parCol]]) else
+    rep(NA_character_, nrow(d))
+  data.table(nodeKey = paste0(tb, ":", d[[paste0(tb, "id")]]), parent = par, level = k,
+             Unit = paste(tb, d[[paste0(tb, "id")]]), id = as.numeric(d[[paste0(tb, "id")]]),
+             Stratum = as.character(g("stratumName")),
+             Selection_method = as.character(g("selectMeth")),
+             numTotal = suppressWarnings(as.numeric(g("numTotal"))),
+             numSamp = suppressWarnings(as.numeric(g("numSamp"))))
+}))
+nodes[is.na(Stratum) | Stratum == "", Stratum := "(none)"]
+
+# PSU strata in calendar order when they are month names, else in order of appearance
+psuStrata <- unique(nodes[level == 1][order(id), Stratum])
+mo <- match(tolower(psuStrata), tolower(c(month.name, month.abb)))
+if (all(!is.na(mo))) psuStrata <- psuStrata[order((mo - 1) %% 12)]
+
+kids <- split(nodes[order(id)]$nodeKey, nodes[order(id)]$parent)
+ordKeys <- character(0)
+ordGroup <- character(0)
+visit <- function(k, grp) {
+  ordKeys <<- c(ordKeys, k)
+  ordGroup <<- c(ordGroup, grp)
+  for (ch in kids[[k]]) visit(ch, grp)
+}
+for (s in psuStrata) {
+  for (r in nodes[level == 1 & Stratum == s][order(id), nodeKey]) visit(r, s)
+}
+tree <- nodes[match(ordKeys, nodeKey)]
+tree[, Group := ordGroup]
+tree[, Unit := paste0("<span style=\"padding-left:", (level - 1) * 1.4, "em\">",
+                      ifelse(level == 1, "<b>", ""), Unit, ifelse(level == 1, "</b>", ""), "</span>")]
+treeTab <- tree[, .(Unit, Stratum, Selection_method, numTotal, numSamp)]
+k <- kableExtra::kbl(treeTab, format = "html", escape = FALSE,
+                     col.names = gsub("_", " ", names(treeTab)), format.args = list(big.mark = ","),
+                     caption = paste0("Selected units by stage, each under the unit it was selected from (",
+                                      paste(stageTabs, collapse = " &rarr; "), "), grouped by ", psuTab,
+                                      " stratum. numTotal is the number of units available in the stratum within the parent unit ",
+                                      "and numSamp the number selected, as reported on the record."))
+k <- kableExtra::kable_styling(k, bootstrap_options = "hover", full_width = TRUE, position = "left")
+for (s in psuStrata) {
+  w <- which(tree$Group == s)
+  k <- kableExtra::pack_rows(k, paste(psuTab, "stratum", s), min(w), max(w), label_row_css = "")
+}
+k <- sub("<table class=\"", "<table class=\"overview tree ", k)
+structure(paste0("<div class=\"scroll-wrap\" style=\"max-height:640px; overflow-y:auto\">", k, "</div>"),
+          class = "knit_asis")
+```
+
+# Landings and effort
+
+```{r landings, fig.height = 4.5, results = "asis"}
+lumpMetier <- function(m, w) {
+  top <- data.table(m = m, w = w)[, .(w = sum(w)), by = m][order(-w)][seq_len(min(.N, params$topMetiers)), m]
+  ifelse(m %in% top, m, "Other")
+}
+metierFill <- function(levels) {
+  cols <- seriesCols[seq_len(min(length(levels), length(seriesCols)))]
+  names(cols) <- levels[seq_along(cols)]
+  if ("Other" %in% levels) cols["Other"] <- otherCol
+  cols
+}
+stackedBars <- function(d, y, lev, ylab, title, subtitle, labFun) {
+  d[, Metier := factor(Metier, levels = lev)]
+  tot <- d[, .(y = sum(get(y))), by = Quarter]
+  ggplot(d, aes(Quarter, .data[[y]], fill = Metier)) +
+    geom_col(width = 0.55, colour = "white", linewidth = 0.6) +
+    geom_text(data = tot, aes(Quarter, y, label = labFun(y)),
+              inherit.aes = FALSE, vjust = -0.5, fontface = "bold", colour = ink) +
+    scale_y_continuous(labels = fmtN, expand = expansion(mult = c(0, 0.12))) +
+    scale_fill_manual(values = metierFill(lev)) +
+    guides(fill = guide_legend(nrow = 1)) +
+    labs(x = NULL, y = ylab, fill = NULL, title = title, subtitle = subtitle)
+}
+if (!is.null(CL)) {
+  cat("## Landings\n\n")
+  CL[, Metier := lumpMetier(CLmetier6, t)]
+  lev <- CL[, .(t = sum(t)), by = Metier][order(Metier == "Other", -t), Metier]
+  d <- CL[CLcatchCat == "Lan", .(t = sum(t)), by = .(Quarter = paste0("Q", CLquar), Metier)]
+  print(stackedBars(d, "t", lev, "Landings (t)",
+                    paste("Landings by quarter and metier,", dataYear),
+                    "CL scientific weight, catch category Lan. Labels show the quarter total.",
+                    function(x) paste(fmtT(x), "t")))
+
+  clTab <- CL[, .(Official_t = sum(CLoffWeight) / 1000,
+                  Scientific_t = sum(CLsciWeight) / 1000),
+              by = .(Quarter = CLquar, Area = CLarea, Metier6 = CLmetier6,
+                     Catch_category = CLcatchCat, Landing_category = CLlandCat)][
+                       order(Quarter, Area, -Scientific_t)]
+  show(kbl(clTab, digits = 1,
+           caption = "Landings (CL) by quarter, area, metier and category."))
+  basis <- CL[, .(Scientific_t = sum(t)),
+              by = .(Data_basis = CLdBasSciWeig, Data_source = CLdSouSciWeig)]
+  show(kbl(basis, digits = 1, caption = "Data basis and source of the scientific weight in CL."))
+} else {
+  cat("No CL data in the input.\n\n")
+}
+```
+
+```{r effort, fig.height = 4.5, results = "asis"}
+if (!is.null(CE)) {
+  cat("## Effort\n\n")
+  CE[, Metier := lumpMetier(CEmetier6, CEsciDaySea)]
+  lev <- CE[, .(w = sum(CEsciDaySea)), by = Metier][order(Metier == "Other", -w), Metier]
+  d <- CE[, .(Days = sum(CEsciDaySea, na.rm = TRUE)), by = .(Quarter = paste0("Q", CEquar), Metier)]
+  print(stackedBars(d, "Days", lev, "Days at sea",
+                    paste("Effort by quarter and metier,", dataYear),
+                    "CE days at sea (CEsciDaySea). CE is not species specific.",
+                    fmtN))
+  ceTab <- CE[, .(Days_at_sea = sum(CEsciDaySea, na.rm = TRUE),
+                  Fishing_days = sum(CEsciFishDay, na.rm = TRUE),
+                  Trips = sum(CEnumDomTrip, na.rm = TRUE)),
+              by = .(Quarter = CEquar, Area = CEarea, Metier6 = CEmetier6,
+                     Vessel_length = CEvesLenCat)][order(Quarter, Metier6, Vessel_length)]
+  show(kbl(ceTab, caption = "Effort (CE) by quarter, area, metier and vessel length category."))
+} else {
+  cat("No CE data in the input.\n\n")
+}
+```
+
+# Sampling coverage
+
+::: {.note}
+Strata are quarter × area × metier6 of the landings samples and of CL landings (catch category Lan). The country of CS is the sampling country (SDctry) and the country of CL is the flag country.
+:::
+
+```{r coverage, fig.height = 4.5}
+cs <- su[include == TRUE,
+         .(Samples = .N, Units = uniqueN(get(unitTabId)),
+           Landings_of_sampled_units_t = sum(xSample, na.rm = TRUE) / 1000,
+           Fish_measured = sum(Fish_measured), Fish_aged = sum(Fish_aged)),
+         by = .(Quarter = quarter, Area = area, Metier6 = metier6)]
+if (!is.null(CL)) {
+  cl <- CL[CLcatchCat == "Lan", .(Landings_t = sum(t)),
+           by = .(Quarter = as.integer(CLquar), Area = CLarea, Metier6 = CLmetier6)]
+  cov <- merge(cl, cs, by = c("Quarter", "Area", "Metier6"), all = TRUE)
+} else {
+  cov <- copy(cs)[, Landings_t := NA_real_]
+}
+for (v in c("Samples", "Units", "Fish_measured", "Fish_aged", "Landings_of_sampled_units_t", "Landings_t")) {
+  set(cov, which(is.na(cov[[v]])), v, 0)
+}
+setorder(cov, Quarter, Area, -Landings_t)
+setnames(cov, "Units", paste0(unitTab, "_units"))
+cov[, Samples_per_1000t := ifelse(Landings_t > 0, round(1000 * Samples / Landings_t, 1), NA)]
+
+covK <- kableExtra::kbl(cov, format = "html", digits = 1,
+                        col.names = gsub("_", " ", names(cov)),
+                        format.args = list(big.mark = ","),
+                        caption = paste0("Landings and sampling by stratum. ", unitTab,
+                                         " units is the number of sampled ", unitTab,
+                                         " records. Landings of sampled units is the total live weight of the catch fractions the samples were taken from (",
+                                         unitTab, " is the sampled unit, see the Appendix). Shaded rows are strata with landings and 0 samples."))
+covK <- kableExtra::kable_styling(covK, bootstrap_options = "hover", full_width = TRUE,
+                                  position = "left")
+noSamp <- which(cov$Samples == 0)
+if (length(noSamp) > 0) covK <- kableExtra::row_spec(covK, noSamp, background = "#fdf1e8")
+structure(paste0("<div class=\"scroll-wrap\">", covK, "</div>"), class = "knit_asis")
+
+if (!is.null(CL)) {
+  q <- cov[, .(Landings_t = sum(Landings_t), Samples = sum(Samples)), by = Quarter]
+  q <- merge(data.table(Quarter = 1:4), q, all.x = TRUE)
+  q[is.na(Landings_t), Landings_t := 0]
+  q[is.na(Samples), Samples := 0]
+  q[, Sampled := factor(ifelse(Samples > 0, "With samples", "Without samples"),
+                        levels = c("With samples", "Without samples"))]
+  q[, lab := paste0(fmtT(Landings_t), " t\n", Samples, " samples")]
+  print(ggplot(q, aes(paste0("Q", Quarter), Landings_t, fill = Sampled)) +
+          geom_col(width = 0.55) +
+          geom_text(aes(label = lab), vjust = -0.3, lineheight = 0.95) +
+          scale_y_continuous(labels = fmtN, expand = expansion(mult = c(0, 0.2))) +
+          scale_fill_manual(values = c("With samples" = mainCol, "Without samples" = otherCol),
+                            drop = FALSE) +
+          labs(x = NULL, y = "Landings (t)", fill = NULL,
+               title = "Landings and landings samples by quarter",
+               subtitle = "Grey quarters have landings in CL but no landings samples"))
+}
+```
+
+```{r months, fig.height = 4.5}
+m <- su[include == TRUE, .(Samples = .N), by = .(Month = as.integer(month))]
+m <- merge(data.table(Month = 1:12), m, by = "Month", all.x = TRUE)
+m[is.na(Samples), Samples := 0]
+clMonth <- if (!is.null(CL) && "CLmonth" %in% names(CL)) {
+  CL[CLcatchCat == "Lan", .(Landings_t = sum(t)), by = .(Month = as.integer(CLmonth))]
+} else NULL
+if (!is.null(clMonth) && any(!is.na(clMonth$Month))) {
+  noMonthT <- sum(clMonth[is.na(Month), Landings_t])
+  m <- merge(m, clMonth[!is.na(Month)], by = "Month", all.x = TRUE)
+  m[is.na(Landings_t), Landings_t := 0]
+  m[, Sampled := factor(ifelse(Samples > 0, "With samples", "Without samples"),
+                        levels = c("With samples", "Without samples"))]
+  m[, lab := ifelse(Landings_t > 0 | Samples > 0,
+                    paste0(fmtT(Landings_t), " t\n", Samples, " samples"), "")]
+  ggplot(m, aes(factor(month.abb[Month], levels = month.abb), Landings_t, fill = Sampled)) +
+    geom_col(width = 0.6) +
+    geom_text(aes(label = lab), vjust = -0.3, lineheight = 0.95, size = 2.7) +
+    scale_y_continuous(labels = fmtN, expand = expansion(mult = c(0, 0.22))) +
+    scale_fill_manual(values = c("With samples" = mainCol, "Without samples" = otherCol),
+                      drop = FALSE) +
+    labs(x = NULL, y = "Landings (t)", fill = NULL,
+         title = "Landings and landings samples by month",
+         subtitle = paste0("Grey months have landings in CL but no landings samples",
+                           if (noMonthT > 0) paste0(". ", fmtT(noMonthT),
+                                                    " t in CL have no month and are not shown") else ""))
+} else {
+  ggplot(m, aes(factor(month.abb[Month], levels = month.abb), Samples)) +
+    geom_col(fill = mainCol, width = 0.55) +
+    geom_text(data = m[Samples > 0], aes(label = Samples), vjust = -0.5) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+    labs(x = NULL, y = "Samples", title = "Landings samples by month",
+         subtitle = paste0(nSamples, " samples in ", dataYear,
+                           ". Landings by month are not shown because CLmonth is empty in CL."))
+}
+```
+
+# Biological data
+
+```{r biocounts}
+bioQ <- su[include == TRUE, .(Samples = .N, Fish_measured = sum(Fish_measured),
+                              Fish_aged = sum(Fish_aged)), by = .(Quarter = quarter)][order(Quarter)]
+kbl(bioQ, caption = "Fish measured for length and fish aged by quarter, landings samples. Aged fish are part of the measured fish.")
+```
+
+::: {.note}
+All distributions below are unraised sample data. They show what was measured, not the length or age composition of the catch.
+:::
+
+```{r lengths, fig.height = 4.2}
+if (nrow(lenFreq) > 0) {
+  lf <- lenFreq[, .(n = sum(n)), by = .(quarter, Length = floor(Length / params$lengthBin) * params$lengthBin)]
+  lab <- su[include == TRUE & Fish_measured > 0,
+            .(lab = paste0("Q", quarter[1], "  ·  ", fmtN(sum(Fish_measured)),
+                           " fish, ", .N, " samples")), by = quarter]
+  lf <- merge(lf, lab, by = "quarter")
+  lf[, Share := n / sum(n), by = quarter]
+  print(ggplot(lf, aes(Length, Share)) +
+          geom_col(fill = mainCol, width = params$lengthBin * 0.85) +
+          facet_wrap(~lab, nrow = 1) +
+          scale_y_continuous(labels = pctLab, expand = expansion(mult = c(0, 0.05))) +
+          labs(x = paste0("Length (mm, ", params$lengthBin, " mm classes)"),
+               y = "Percentage",
+               title = "Length distribution by quarter",
+               subtitle = "Fish measured in landings samples, unraised"))
+} else {
+  cat("No length measurements.\n")
+}
+```
+
+```{r ages, fig.height = 4.2}
+if (!is.null(fish) && "Age" %in% names(fish) && any(!is.na(fish$Age))) {
+  a <- fish[!is.na(Age), .(n = .N), by = .(quarter, Age)]
+  a[, N := sum(n), by = quarter]
+  a[, lab := paste0("Q", quarter, "  ·  ", fmtN(N), " fish aged")]
+  a[, Share := n / N]
+  print(ggplot(a, aes(Age, Share)) +
+          geom_col(fill = mainCol, width = 0.65) +
+          geom_text(aes(label = n), vjust = -0.5, size = 2.8) +
+          facet_wrap(~lab, nrow = 1) +
+          scale_x_continuous(breaks = function(x) seq(0, ceiling(max(x)), 1)) +
+          scale_y_continuous(labels = pctLab, expand = expansion(mult = c(0, 0.12))) +
+          labs(x = "Age (years)", y = "Percentage",
+               title = "Age distribution by quarter",
+               subtitle = "Fish aged in landings samples, unraised. Labels show the number of fish."))
+} else {
+  cat("No ages.\n")
+}
+```
+
+```{r lengthAge, fig.height = 4.2}
+if (!is.null(fish) && all(c("Age", "Length") %in% names(fish)) &&
+    any(!is.na(fish$Age) & !is.na(fish$Length))) {
+  la <- fish[!is.na(Age) & !is.na(Length)]
+  la[, nAge := .N, by = Age]
+  print(ggplot(la, aes(factor(Age), Length)) +
+          geom_jitter(colour = mainCol, alpha = 0.15, width = 0.18, height = 0, size = 0.9) +
+          geom_boxplot(fill = NA, colour = ink, outlier.shape = NA, width = 0.5, linewidth = 0.45) +
+          geom_text(data = unique(la[, .(Age, nAge)]),
+                    aes(factor(Age), -Inf, label = paste0("n = ", nAge)),
+                    vjust = -0.6, size = 2.8, colour = muted, inherit.aes = FALSE) +
+          labs(x = "Age (years)", y = "Length (mm)", title = "Length at age",
+               subtitle = paste(fmtN(nrow(la)), "fish with age and length. Points are single fish, boxes show the quartiles.")))
+}
+```
+
+```{r lengthWeight, fig.height = 4.2}
+if (!is.null(fish) && all(c("WeightMeasured", "Length") %in% names(fish)) &&
+    any(!is.na(fish$WeightMeasured) & !is.na(fish$Length))) {
+  lw <- fish[!is.na(WeightMeasured) & !is.na(Length) & WeightMeasured > 0 & Length > 0]
+  fit <- lm(log(WeightMeasured) ~ log(Length), data = lw)
+  co <- coef(fit)
+  print(ggplot(lw, aes(Length, WeightMeasured)) +
+          geom_point(colour = mainCol, alpha = 0.35, size = 1.4, stroke = 0) +
+          stat_function(fun = function(L) exp(co[1]) * L^co[2], colour = seriesCols[2],
+                        linewidth = 1) +
+          labs(x = "Length (mm)", y = "Weight (g)", title = "Length and weight",
+               subtitle = paste0(fmtN(nrow(lw)), " fish. Orange line: W = ",
+                                 signif(exp(co[1]), 3), " × L^", round(co[2], 2),
+                                 ", fitted on the log scale.")))
+}
+```
+
+```{r sexMaturity, fig.height = 3.8}
+catPlot <- function(var, title) {
+  if (is.null(fish) || !var %in% names(fish) || all(is.na(fish[[var]]))) return(NULL)
+  d <- fish[!is.na(get(var)), .(n = .N), by = .(quarter, Value = get(var))]
+  d[, N := sum(n), by = quarter]
+  lev <- sort(unique(as.character(d$Value)))
+  d[, Value := factor(Value, levels = lev)]
+  k <- seq_len(min(length(lev), length(seriesCols)))
+  cols <- setNames(seriesCols[k], lev[k])
+  inkCols <- setNames(seriesInk[k], lev[k])
+  d[, labCol := inkCols[as.character(Value)]]
+  ggplot(d, aes(n / N, paste0("Q", quarter), fill = Value)) +
+    geom_col(width = 0.6, colour = "white", linewidth = 0.6,
+             position = position_stack(reverse = TRUE)) +
+    geom_text(aes(label = ifelse(n / N >= 0.06, paste0(n, "/", N), ""), colour = labCol),
+              position = position_stack(vjust = 0.5, reverse = TRUE), size = 2.8) +
+    scale_colour_identity() +
+    scale_x_continuous(labels = pctLab, expand = expansion(mult = c(0, 0.01))) +
+    scale_y_discrete(limits = rev) +
+    scale_fill_manual(values = cols) +
+    guides(fill = guide_legend(nrow = 1)) +
+    theme(panel.grid.major.y = element_blank(),
+          panel.grid.major.x = element_line(colour = "#ececec", linewidth = 0.4)) +
+    labs(x = "Percentage", y = NULL, fill = NULL, title = title,
+         subtitle = "Labels show n/N fish in the quarter")
+}
+p <- catPlot("Sex", "Sex by quarter")
+if (!is.null(p)) print(p)
+p <- catPlot("Maturity", "Maturity stage by quarter")
+if (!is.null(p)) print(p)
+```
+
+# Appendix {-}
+
+```{r appendix}
+# Descriptions and definitions from "RDBES Documentation of the Data Model"
+# (1 April 2026), section "Description of each table" (DE to SA, SD, VD, SL,
+# FM, BV), section "Vessel Details and Species List" (IS) and section
+# "Aggregated Commercial Landings (CL) and Commercial Effort (CE)" (CL, CE).
+# Comparisons with the old RDB format (HH, SL, CS) are left out.
+tabInfo <- data.table(
+  Table = c("DE", "SD", "OS", "LO", "TE", "FT", "LE", "VS", "FO", "SS", "SA", "FM", "BV",
+            "VD", "SL", "IS", "CL", "CE"),
+  Name = c("Design", "Sampling details", "On-shore event", "Location", "Temporal event",
+           "Fishing trip", "Landing event", "Vessel selection", "Fishing operation",
+           "Species selection", "Sample", "Frequency measure", "Biological variable",
+           "Vessel details", "Species list details", "Individual species",
+           "Commercial landings", "Commercial effort"),
+  Definition = c(
+    "This table holds the information about the sampling scheme and stratification thereof. Further it specifies the upper hierarchy, which is unique for a given combination of sampling scheme and stratification.",
+    "This table holds information on the sampling country and institute.",
+    "If one of the sampling units is a combination of Location and Time, then this is where to put the information about the selection. Definition: Location*time, e.g. port-day, market-day, auction-day and factory-day.",
+    "If one of the sampling units is a location, then this is where to put the information about the selection. The location refers to a place with LOCODE.",
+    "If one of the sampling units is some kind of time e.g., minute, week or quarter, then this is where to put the information about the selection.",
+    "This table holds information about the fishing trip. Definition: Any voyage of a fishing vessel during which fishing activities are intended that starts at the moment when the fishing vessel leaves a port and ends on arrival in port.",
+    "This table holds information about the landing event. It is not assumed that one is sampling from all the landings of a fishing trip because there may be e.g. landings and sales taking place elsewhere. Definition: Landings from a fishing trip or part thereof.",
+    "If one of the sampling units is a vessel, then this is where to put the information about the selection.",
+    "This table holds information about the fishing operation. Definition: set/haul.",
+    "This table holds information about the selection of species expected in the Sample (SA) table e.g., only species from a national species list are sampled, full concurrent species sampling, probabilistic species selection from a species group.",
+    "This table holds outcome of the sampling done in the upper hierarchy, i.e. the final sample of fish available for measurement or biological analyses.",
+    "This table holds the length distribution of the subsample from Sample (SA).",
+    "This table holds the biological measurement done on individual fish e.g., weight, age, maturity and stock. Each line holds a single measurement.",
+    "This table holds information about the vessel properties e.g. homeport and vessel length.",
+    "This table holds information about the list of species which are targeted during a sampling event.",
+    "Individual species records in a species list name (SL).",
+    "Aggregated landings data from national commercial fisheries, with official and scientific estimates.",
+    "Aggregated effort data from national commercial fisheries, with official and scientific estimates."))
+present <- names(dat)[vapply(names(dat), function(t) nr(dat[[t]]) > 0, logical(1))]
+tabInfo <- tabInfo[Table %in% c(presentTabs, present)]
+tabInfo[, Order := match(Table, c(presentTabs, "VD", "SL", "IS", "CL", "CE"))]
+setorder(tabInfo, Order)
+tabInfo[, Order := NULL]
+tabInfo[, Table := paste0("<b>", Table, "</b>")]
+kbl(tabInfo, escape = FALSE,
+    caption = paste0("RDBES tables in this report, in hierarchy order (hierarchy ", hier, ": ",
+                     paste(presentTabs, collapse = " &rarr; "),
+                     "). Definitions from the RDBES Documentation of the Data Model."))
+```

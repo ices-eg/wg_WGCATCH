@@ -1,0 +1,751 @@
+---
+title: "CS sampling designs in the RDBES"
+date: "`r format(Sys.Date())`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_depth: 3
+    number_sections: true
+    code_folding: hide
+params:
+  source: "folder"
+  dataDir: "./CS_data"
+  repoDir: "../.."
+  refusalPattern: "refus"
+  topN: 30
+  tablesDir: "CSDesignAnalysis_tables"
+---
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = TRUE,
+                      fig.width = 11, dpi = 96)
+library(data.table)
+library(ggplot2)
+
+# RDBEScore from the repository if available, otherwise the installed package
+if (requireNamespace("devtools", quietly = TRUE) &&
+    file.exists(file.path(params$repoDir, "DESCRIPTION"))) {
+  devtools::load_all(params$repoDir, quiet = TRUE)
+} else {
+  library(RDBEScore)
+}
+
+dir.create(params$tablesDir, showWarnings = FALSE)
+theme_set(theme_bw(base_size = 10))
+```
+
+```{r helpers}
+# ---- general helpers --------------------------------------------------------
+
+asChr <- function(x) {
+  x <- as.character(x)
+  x[!is.na(x) & trimws(x) == ""] <- NA
+  x
+}
+
+getCol <- function(d, col) {
+  if (!is.null(d) && col %in% names(d)) asChr(d[[col]]) else rep(NA_character_, NROW(d))
+}
+
+pct <- function(n, N) ifelse(N > 0, round(100 * n / N, 1), NA_real_)
+nOfN <- function(n, N) paste0(n, "/", N)
+nOfNpct <- function(n, N) paste0(n, "/", N, " (", pct(n, N), "%)")
+
+# Show the first topN rows and write the full table as csv
+showTable <- function(x, name, caption) {
+  x <- as.data.table(x)
+  file <- file.path(params$tablesDir, paste0(name, ".csv"))
+  fwrite(x, file)
+  if (nrow(x) > params$topN) {
+    caption <- paste0(caption, " First ", params$topN, " of ", nrow(x),
+                      " rows. Full table: ", file, ".")
+  } else {
+    caption <- paste0(caption, " Full table: ", file, ".")
+  }
+  knitr::kable(head(x, params$topN), caption = caption)
+}
+
+figH <- function(nPanels, ncol = 3, perRow = 2.8, base = 1.2) {
+  base + perRow * ceiling(max(nPanels, 1) / ncol)
+}
+
+classColours <- c("Probabilistic" = "#1b9e77", "Census" = "#7570b3",
+                  "Quasi-probabilistic" = "#e6ab02",
+                  "Non-probabilistic" = "#d95f02", "Other" = "#999999",
+                  "Unrecognised" = "#e7298a", "Missing" = "#d9d9d9")
+ynColours <- c("Y" = "#1b9e77", "N" = "#d95f02", "Missing" = "#d9d9d9")
+
+# x axis per hierarchy facet in that hierarchy's stage order
+stageX <- function(dt) {
+  lv <- unique(dt[order(hierarchyNum, stageOrder), paste0(hierarchy, ":", stage)])
+  factor(paste0(dt$hierarchy, ":", dt$stage), levels = lv)
+}
+dropPrefix <- function(x) sub("^[^:]*:", "", x)
+
+# ---- RDBES fields used ------------------------------------------------------
+
+# name in the report = suffix of the R column name (XX + suffix)
+stageFields <- c(selectMeth = "selectMeth",
+                 selectMethCluster = "selectMethCluster",
+                 unitName = "unitName",
+                 stratification = "stratification",
+                 stratumName = "stratumName",
+                 clustering = "clustering",
+                 numTotal = "numTotal",
+                 numSamp = "numSamp",
+                 selProb = "selProb",
+                 incProb = "incProb",
+                 sampled = "samp",
+                 reasonNotSampled = "noSampReason",
+                 nonResponseCollected = "nonRespCol",
+                 sampler = "sampler")
+
+hierTables <- as.data.table(RDBEScore::tablesInRDBESHierarchies)
+```
+
+```{r build}
+# ---- one long table: one row per record at each stage ------------------------
+
+buildDesignTable <- function(obj, dataset) {
+  if (is.null(obj$DE) || nrow(obj$DE) == 0) return(NULL)
+  DE <- obj$DE
+  SD <- obj$SD
+  hier <- unique(getCol(DE, "DEhierarchy"))
+  if (length(hier) > 1) {
+    warning(dataset, " holds DE records of more than one hierarchy (",
+            paste(hier, collapse = ", "), "). The table order of H", hier[1],
+            " is used to link records.")
+  }
+  tabs <- hierTables[hierarchy == paste0("H", hier[1]) &
+                       !table %in% c("DE", "SD") & !lowerHierarchy][order(sortOrder)]
+
+  sdMap <- data.table(mapKey = character(0), SDid = character(0))
+  prev <- character(0)
+  recs <- list()
+  for (i in seq_len(nrow(tabs))) {
+    tb <- tabs$table[i]
+    d <- obj[[tb]]
+    parents <- prev
+    prev <- c(prev, tb)
+    if (is.null(d) || nrow(d) == 0) next
+
+    id <- getCol(d, paste0(tb, "id"))
+    # parent = the nearest earlier table whose id is filled in this record
+    parentTable <- rep(NA_character_, nrow(d))
+    parentId <- rep(NA_character_, nrow(d))
+    for (p in parents) {
+      v <- getCol(d, paste0(p, "id"))
+      ok <- !is.na(v)
+      parentTable[ok] <- p
+      parentId[ok] <- v[ok]
+    }
+    # SDid from the record itself, otherwise from its parent
+    sdid <- getCol(d, "SDid")
+    miss <- is.na(sdid) & !is.na(parentId)
+    if (any(miss)) {
+      sdid[miss] <- sdMap$SDid[match(paste(parentTable[miss], parentId[miss]),
+                                     sdMap$mapKey)]
+    }
+    sdMap <- rbind(sdMap, data.table(mapKey = paste(tb, id), SDid = sdid))
+
+    rec <- data.table(dataset = dataset, stage = tb,
+                      stageOrder = tabs$sortOrder[i],
+                      samplingUnit = tabs$samplingUnit[i],
+                      optional = tabs$optional[i],
+                      recordId = id, parentTable = parentTable,
+                      parentId = parentId, SDid = sdid)
+    for (f in names(stageFields)) {
+      set(rec, j = f, value = getCol(d, paste0(tb, stageFields[[f]])))
+    }
+    saLevel <- if (tb == "SA") {
+      ifelse(is.na(getCol(d, "SAparSequNum")), "Top sample", "Subsample")
+    } else {
+      rep(NA_character_, nrow(d))
+    }
+    set(rec, j = "saLevel", value = saLevel)
+    recs[[tb]] <- rec
+  }
+  long <- rbindlist(recs, fill = TRUE)
+
+  sdInfo <- data.table(SDid = getCol(SD, "SDid"), DEid = getCol(SD, "DEid"),
+                       country = getCol(SD, "SDctry"),
+                       institution = getCol(SD, "SDinst"))
+  deInfo <- data.table(DEid = getCol(DE, "DEid"),
+                       hierarchy = paste0("H", getCol(DE, "DEhierarchy")),
+                       year = getCol(DE, "DEyear"),
+                       scheme = getCol(DE, "DEsampScheme"),
+                       schemeType = getCol(DE, "DEsampSchemeType"),
+                       DEstratumName = getCol(DE, "DEstratumName"),
+                       deSampled = getCol(DE, "DEsamp"),
+                       deNonRespCol = getCol(DE, "DEnonResponseCollected"))
+  designs <- merge(deInfo, sdInfo, by = "DEid", all.x = TRUE)
+  designs[, dataset := dataset]
+
+  if (nrow(long) > 0) {
+    long <- merge(long, sdInfo, by = "SDid", all.x = TRUE)
+    long <- merge(long, deInfo, by = "DEid", all.x = TRUE)
+    # the first stage hangs under the design itself
+    long[is.na(parentId) & !is.na(DEid), `:=`(parentTable = "DE", parentId = DEid)]
+  }
+
+  # BV only aggregated (can be very large)
+  bv <- NULL
+  if (!is.null(obj$BV) && nrow(obj$BV) > 0) {
+    bv <- data.table(SAid = getCol(obj$BV, "SAid"),
+                     selectMeth = getCol(obj$BV, "BVselectMeth"))[, .N, by = .(SAid, selectMeth)]
+    bv[, SDid := sdMap$SDid[match(paste("SA", SAid), sdMap$mapKey)]]
+    bv <- merge(bv, sdInfo, by = "SDid", all.x = TRUE)
+    bv <- merge(bv, deInfo[, .(DEid, hierarchy, year, scheme)], by = "DEid", all.x = TRUE)
+    bv <- bv[, .(N = sum(N)), by = .(hierarchy, country, year, scheme, selectMeth)]
+    bv[, dataset := dataset]
+  }
+  list(long = long, designs = designs, bv = bv)
+}
+
+# ---- read inputs one by one and keep only the long tables -------------------
+
+readLog <- list()
+parts <- list()
+addPart <- function(obj, name) {
+  parts[[name]] <<- buildDesignTable(obj, name)
+}
+
+if (params$source == "synthetic") {
+  files <- list.files(file.path(params$repoDir, "data"), pattern = "\\.rda$",
+                      full.names = TRUE)
+  for (f in files) {
+    e <- new.env()
+    nms <- load(f, envir = e)
+    for (n in nms) {
+      if (inherits(e[[n]], "RDBESDataObject")) addPart(e[[n]], n)
+    }
+  }
+} else {
+  hDirs <- list.dirs(params$dataDir, recursive = FALSE)
+  hDirs <- hDirs[grepl("^H[0-9]+$", basename(hDirs))]
+  if (length(hDirs) == 0) stop("No H<n> folders found in ", params$dataDir)
+  for (d in hDirs) {
+    inputs <- as.list(list.files(d, pattern = "\\.zip$", full.names = TRUE))
+    if (length(list.files(d, pattern = "\\.csv$")) > 0) inputs <- c(inputs, d)
+    if (length(inputs) == 0) {
+      readLog[[d]] <- data.table(input = d, status = "empty folder, skipped")
+      next
+    }
+    for (x in inputs) {
+      name <- if (x == d) basename(d) else paste(basename(d), basename(x), sep = "/")
+      obj <- tryCatch(createRDBESDataObject(input = x, castToCorrectDataTypes = TRUE),
+                      error = function(e) e)
+      if (inherits(obj, "error")) {
+        readLog[[name]] <- data.table(input = name,
+                                      status = paste("read error:", conditionMessage(obj)))
+      } else {
+        addPart(obj, name)
+        readLog[[name]] <- data.table(input = name, status = "read")
+      }
+      rm(obj)
+    }
+  }
+}
+
+long <- rbindlist(lapply(parts, `[[`, "long"), fill = TRUE)
+designs <- rbindlist(lapply(parts, `[[`, "designs"), fill = TRUE)
+bvAll <- rbindlist(lapply(parts, `[[`, "bv"), fill = TRUE)
+readLog <- rbindlist(readLog)
+rm(parts)
+
+# ---- derived columns ----------------------------------------------------------
+
+hierLevels <- paste0("H", 1:13)
+addKeys <- function(dt) {
+  dt[is.na(country), country := "Unknown"]
+  dt[, hierarchy := factor(hierarchy, levels = hierLevels)]
+  dt[, hierarchyNum := as.integer(hierarchy)]
+  # design = scheme name x institution x year x hierarchy. DE records are its strata.
+  # a sampling scheme and a design are the same unit
+  dt[, designKey := paste(scheme, institution, year, hierarchy, sep = " | ")]
+  dt[, schemeKey := designKey]
+  dt[, deKey := paste(dataset, DEid)]
+  invisible(dt)
+}
+addKeys(long)
+addKeys(designs)
+long[, methodClass := classifySelectionMethod(selectMeth)]
+long[is.na(methodClass), methodClass := "Missing"]
+long[, methodClass := factor(methodClass, levels = names(classColours))]
+long[, selectMeth := ifelse(is.na(selectMeth), "Missing", selectMeth)]
+long[, parentKey := paste(dataset, parentTable, parentId)]
+long[, groupKey := paste(parentKey, ifelse(is.na(saLevel), "", saLevel))]
+for (v in c("numTotal", "numSamp", "selProb", "incProb")) {
+  set(long, j = v, value = suppressWarnings(as.numeric(long[[v]])))
+}
+ynOf <- function(x) factor(ifelse(is.na(x), "Missing", x), levels = c("Y", "N", "Missing"))
+long[, sampledYN := ynOf(sampled)]
+long[, nonRespYN := ynOf(nonResponseCollected)]
+designs[, deNonRespYN := ynOf(deNonRespCol)]
+
+su <- long[samplingUnit == TRUE]
+probClasses <- c("Probabilistic", "Census")
+stageLevels <- c("TE", "LO", "VS", "OS", "FT", "LE", "FO", "SS", "SA")
+su[, stageF := factor(stage, levels = stageLevels)]
+nHier <- uniqueN(su$hierarchy)
+allMethods <- sort(unique(su$selectMeth))
+methodColours <- setNames(scales::hue_pal()(length(allMethods)), allMethods)
+
+# stage order per hierarchy (RDBEScore::tablesInRDBESHierarchies)
+stageRank <- hierTables[!table %in% c("DE", "SD") & !lowerHierarchy,
+                        .(hierarchy, stage = table, sortOrder, samplingUnit)]
+stageRank[samplingUnit == TRUE, suRank := rank(sortOrder), by = hierarchy]
+su <- merge(su, stageRank[, .(hierarchy, stage, suRank)],
+            by = c("hierarchy", "stage"), all.x = TRUE)
+su[, hierarchy := factor(hierarchy, levels = hierLevels)]
+
+# table columns named by stage: put them in sampling order
+orderStageCols <- function(dt) {
+  st <- intersect(stageLevels, names(dt))
+  setcolorder(dt, c(setdiff(names(dt), st), st))
+  dt
+}
+# table rows by hierarchy and stage: sampling order within each hierarchy
+orderStages <- function(dt) {
+  dt <- merge(dt, stageRank[, .(hierarchy, stage, sortOrder_ = sortOrder)],
+              by = c("hierarchy", "stage"), all.x = TRUE, sort = FALSE)
+  dt[, hierarchy := factor(hierarchy, levels = hierLevels)]
+  setorder(dt, hierarchy, sortOrder_)
+  dt[, sortOrder_ := NULL]
+  dt
+}
+
+# design class (definitions in the non-response section)
+cl <- su[!methodClass %in% c("Other", "Missing"),
+         .(designClass = if (all(methodClass %in% probClasses)) "Probabilistic"
+           else if (all(methodClass %in% c(probClasses, "Quasi-probabilistic"))) "Quasi-probabilistic"
+           else if (all(methodClass == "Non-probabilistic")) "Non-probabilistic"
+           else "Mixed"),
+         by = designKey]
+designClassLevels <- c("Probabilistic", "Quasi-probabilistic", "Mixed",
+                       "Non-probabilistic", "Unclassified")
+designs <- merge(designs, cl, by = "designKey", all.x = TRUE)
+designs[is.na(designClass), designClass := "Unclassified"]
+designs[, designClass := factor(designClass, levels = designClassLevels)]
+su <- merge(su, cl, by = "designKey", all.x = TRUE)
+su[is.na(designClass), designClass := "Unclassified"]
+su[, designClass := factor(designClass, levels = designClassLevels)]
+
+# one row per design and hierarchy, DE strata summarised
+deD <- designs[, .(country = country[1], year = year[1], designClass = designClass[1],
+                   strata = uniqueN(deKey), strataY = uniqueN(deKey[deNonRespYN == "Y"]),
+                   strataMissing = uniqueN(deKey[deNonRespYN == "Missing"])),
+               by = .(designKey, hierarchy)]
+deD[, deStatus := factor(fifelse(strataY == strata, "Y in all strata",
+                         fifelse(strataY > 0, "Y in some strata",
+                         fifelse(strataMissing == strata, "Missing", "N"))),
+                         levels = c("Y in all strata", "Y in some strata", "N", "Missing"))]
+
+# unit_sel: selection methods per sampling unit (stage) within one DE stratum of one scheme
+uu <- su[, .(unit_sel = uniqueN(selectMeth),
+             methods = paste(sort(unique(selectMeth)), collapse = "/"),
+             stage_strata = uniqueN(stratumName),
+             records = .N),
+         by = .(country, scheme, institution, year, schemeKey, DEstratumName, deKey,
+                hierarchy, hierarchyNum, stage, stageOrder)]
+```
+
+Source: **`r params$source`**`r if (params$source == "folder") paste0(" (", params$dataDir, ")")`. Inputs read: `r length(unique(long$dataset))`. Records at sampling stages: `r format(nrow(su), big.mark = ",")`. Countries: `r length(unique(designs$country))`. Years: `r paste(range(designs$year, na.rm = TRUE), collapse = "-")`. Tables longer than `r params$topN` rows are cut in this page and written in full to `r params$tablesDir`/.
+
+```{r readlog}
+if (nrow(readLog) > 0 && any(readLog$status != "read")) {
+  showTable(readLog[status != "read"], "readProblems", "Inputs not read.")
+}
+```
+
+# Results
+
+Records are the rows of the stage tables (TE, LO, VS, OS, FT, LE, FO, SS, SA). A sampling scheme, also called a design in this report, is one `DEsampScheme × SDinstitution × DEyear × DEhierarchy`. Its DE records are strata of the scheme (`DEstratumName`), not separate designs. Tables that are not sampling units in a hierarchy (for example LE in H6 and H11, FT in H8, H12 and H13) are kept out of all counts unless stated.
+
+## Summary plots
+
+### Records by sampling unit and selection method {.tabset}
+
+One tab per hierarchy. Each panel is one year, each bar one sampling unit in the sampling order of that hierarchy. The label is the number of records per sampling unit and year. The y axis is the same in all panels of a tab, so years can be compared.
+
+```{r sumMethods, results = "asis"}
+plotMethodsYear <- function(xh) {
+  xh <- copy(xh)
+  xh[, stageF := factor(stage, levels = unique(stage[order(stageOrder)]))]
+  tot <- xh[, .(N = sum(N)), by = .(year, stageF)]
+  ggplot(xh, aes(stageF, N, fill = selectMeth)) +
+    geom_col() +
+    geom_text(data = tot, aes(stageF, N, label = format(N, big.mark = ",")),
+              inherit.aes = FALSE, vjust = -0.3, size = 2.6) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+    scale_x_discrete(drop = FALSE) +
+    facet_wrap(~year, ncol = 3) +
+    scale_fill_manual(values = methodColours) +
+    labs(x = "Sampling unit", y = "Records", fill = "Selection method",
+         title = paste0(xh$hierarchy[1], ": records by sampling unit, year and selection method"))
+}
+x <- su[, .N, by = .(hierarchy, hierarchyNum, stage, stageOrder, year, selectMeth)]
+for (h in unique(x[order(hierarchyNum), hierarchy])) {
+  nY <- uniqueN(x[hierarchy == h, year])
+  cat("\n\n#### ", h, "\n\n", sep = "")
+  child <- sprintf(paste0("```{r sumMethods_%s, echo = FALSE, fig.height = %.1f}\n",
+                          "print(plotMethodsYear(x[hierarchy == \"%s\"]))\n```\n"),
+                   h, figH(nY, ncol = 3, perRow = 3), h)
+  cat(knitr::knit_child(text = child, envir = environment(), quiet = TRUE))
+}
+```
+
+### Selection method class by sampling unit {.tabset}
+
+One tab per hierarchy. Each panel is one year, each bar one sampling unit in the sampling order of that hierarchy. Bars show the share of records in each method class. The segment label is the number of records in the class, the top label the number of records of the sampling unit in that year (N).
+
+```{r sumClass, results = "asis"}
+plotClassYear <- function(xh) {
+  xh <- copy(xh)
+  xh[, stageF := factor(stage, levels = unique(stage[order(stageOrder)]))]
+  xh[, Ntot := sum(N), by = .(year, stageF)]
+  tot <- unique(xh[, .(year, stageF, Ntot)])
+  ggplot(xh, aes(stageF, N / Ntot, fill = methodClass)) +
+    geom_col() +
+    geom_text(aes(label = N), position = position_stack(vjust = 0.5), size = 2.6) +
+    geom_text(data = tot, aes(stageF, 1.06, label = paste0("N=", Ntot)),
+              inherit.aes = FALSE, size = 2.6) +
+    scale_fill_manual(values = classColours, drop = TRUE) +
+    scale_x_discrete(drop = FALSE) +
+    scale_y_continuous(labels = scales::percent, limits = c(0, 1.1)) +
+    facet_wrap(~year, ncol = 3) +
+    labs(x = "Sampling unit", y = "Share of records", fill = "Method class",
+         title = paste0(xh$hierarchy[1], ": selection method class by sampling unit and year"))
+}
+x <- su[, .N, by = .(hierarchy, hierarchyNum, stage, stageOrder, year, methodClass)]
+for (h in unique(x[order(hierarchyNum), hierarchy])) {
+  nY <- uniqueN(x[hierarchy == h, year])
+  cat("\n\n#### ", h, "\n\n", sep = "")
+  child <- sprintf(paste0("```{r sumClass_%s, echo = FALSE, fig.height = %.1f}\n",
+                          "print(plotClassYear(x[hierarchy == \"%s\"]))\n```\n"),
+                   h, figH(nY, ncol = 3, perRow = 3), h)
+  cat(knitr::knit_child(text = child, envir = environment(), quiet = TRUE))
+}
+```
+
+### unit_sel by sampling unit {.tabset}
+
+One tab per hierarchy. `unit_sel` is the number of selection methods used for one sampling unit (stage) within one DE stratum of one scheme. Each panel is one year, each bar one sampling unit in sampling order. The bar counts the scheme strata with records at that sampling unit, coloured by their `unit_sel`. The segment label is the number of scheme strata, the top label the total (N).
+
+```{r sumUnitSel, results = "asis"}
+plotUnitSelYear <- function(xh) {
+  xh <- copy(xh)
+  xh[, stageF := factor(stage, levels = unique(stage[order(stageOrder)]))]
+  tot <- xh[, .(N = sum(N)), by = .(year, stageF)]
+  ggplot(xh, aes(stageF, N, fill = unitSelF)) +
+    geom_col() +
+    geom_text(aes(label = N), position = position_stack(vjust = 0.5), size = 2.6) +
+    geom_text(data = tot, aes(stageF, N, label = paste0("N=", N)),
+              inherit.aes = FALSE, vjust = -0.3, size = 2.6) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+    scale_x_discrete(drop = FALSE) +
+    scale_fill_manual(values = unitSelColours, drop = FALSE) +
+    facet_wrap(~year, ncol = 3) +
+    labs(x = "Sampling unit", y = "Scheme strata (DE records)", fill = "unit_sel",
+         title = paste0(xh$hierarchy[1], ": unit_sel by sampling unit and year"))
+}
+selLevels <- as.character(seq_len(max(uu$unit_sel)))
+unitSelColours <- setNames(c("#bdbdbd", "#fdae6b", "#e6550d", "#a63603", "#7f2704",
+                             rep("#4d0000", 20))[seq_along(selLevels)], selLevels)
+x <- uu[, .N, by = .(hierarchy, hierarchyNum, stage, stageOrder, year, unit_sel)]
+x[, unitSelF := factor(as.character(unit_sel), levels = selLevels)]
+for (h in unique(x[order(hierarchyNum), hierarchy])) {
+  nY <- uniqueN(x[hierarchy == h, year])
+  cat("\n\n#### ", as.character(h), "\n\n", sep = "")
+  child <- sprintf(paste0("```{r sumUnitSel_%s, echo = FALSE, fig.height = %.1f}\n",
+                          "print(plotUnitSelYear(x[hierarchy == \"%s\"]))\n```\n"),
+                   h, figH(nY, ncol = 3, perRow = 3), h)
+  cat(knitr::knit_child(text = child, envir = environment(), quiet = TRUE))
+}
+```
+
+### Other summary plots
+
+The primary sampling unit (PSU) is the first sampling stage of a hierarchy and the secondary sampling unit (SSU) the second, following `tablesInRDBESHierarchies` (for example VS and FT in H1, OS and LE in H5, TE and VS in H8).
+
+```{r psuSsu, fig.height = figH(uniqueN(su[suRank %in% 1:2]$hierarchy), perRow = 3)}
+pu <- su[suRank %in% 1:2]
+pu[, unit := paste0(c("PSU", "SSU")[suRank], " (", stage, ")")]
+x <- pu[, .N, by = .(hierarchy, unit, suRank, selectMeth)]
+x[, Ntot := sum(N), by = .(hierarchy, unit)]
+tot <- unique(x[, .(hierarchy, unit, Ntot)])
+ggplot(x, aes(unit, N / Ntot, fill = selectMeth)) +
+  geom_col(width = 0.7) +
+  geom_text(aes(label = N), position = position_stack(vjust = 0.5), size = 2.4) +
+  geom_text(data = tot, aes(unit, 1.06, label = paste0("N=", Ntot)),
+            inherit.aes = FALSE, size = 2.5) +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1.1)) +
+  facet_wrap(~hierarchy, scales = "free_x", ncol = 3) +
+  scale_fill_manual(values = methodColours) +
+  labs(x = "", y = "Share of records", fill = "Selection method",
+       title = "Selection method of the PSU and SSU records by hierarchy",
+       subtitle = "Segment label = records, top label = records of the unit, all countries and years")
+```
+
+A design is probabilistic when all records at its sampling stages use a probabilistic or census method (methods of class Other and missing methods are left out).
+
+```{r sumSampled, fig.height = 1.5 + 0.25 * uniqueN(su[, paste(hierarchy, stage)])}
+sp <- su[designClass == "Probabilistic"]
+x <- sp[, .(n = sum(nonRespYN == "Y"), N = .N), by = .(hierarchy, stageOrder, stage, year)]
+x[, hs := paste0(hierarchy, ":", stage)]
+lv <- unique(x[order(as.integer(hierarchy), -stageOrder), hs])
+x[, hs := factor(hs, levels = lv)]
+ggplot(x, aes(year, hs, fill = n / N)) +
+  geom_tile() +
+  geom_text(aes(label = nOfN(n, N)), size = 2.2) +
+  scale_fill_gradient(low = "#ffffff", high = "#d95f02", labels = scales::percent,
+                      limits = c(0, 1), name = "Share") +
+  scale_y_discrete(labels = dropPrefix) +
+  facet_grid(hierarchy ~ ., scales = "free_y", space = "free_y") +
+  theme(strip.text.y = element_text(angle = 0)) +
+  labs(x = "Year", y = "Stage",
+       title = "Probabilistic designs: records with non-response collected (Y) by hierarchy, stage and year",
+       subtitle = "Label = records / records at the stage. Missing values count as not Y.")
+```
+
+```{r tabHelper}
+# one tab per value: heading, then a child chunk with its own figure height
+knitTabs <- function(values, label, call, heights) {
+  for (i in seq_along(values)) {
+    v <- as.character(values[i])
+    cat("\n\n#### ", v, "\n\n", sep = "")
+    child <- sprintf("```{r %s_%s, echo = FALSE, fig.height = %.1f}\nprint(%s)\n```\n",
+                     label, gsub("[^A-Za-z0-9]", "", v), heights[i], sprintf(call, v))
+    cat(knitr::knit_child(text = child, envir = parent.frame(2), quiet = TRUE))
+  }
+}
+stageFactor <- function(dt) factor(dt$stage, levels = unique(dt$stage[order(dt$stageOrder)]))
+```
+
+### PSU and SSU across hierarchies {.tabset}
+
+One tab per year. PSU and SSU records of all hierarchies together. When a table is the PSU (or SSU) of more than one hierarchy, for example VS in H1 and H2, its records are summed. The label is the number of records of the unit.
+
+```{r psuSsuAll, results = "asis"}
+pa <- su[suRank %in% 1:2]
+pa[, level := factor(c("PSU", "SSU")[suRank], levels = c("PSU", "SSU"))]
+pa <- pa[, .N, by = .(year, level, stage, selectMeth)]
+pa[, stage := factor(stage, levels = stageLevels)]
+plotPsuSsuYear <- function(y) {
+  xy <- pa[year == y]
+  tot <- xy[, .(N = sum(N)), by = .(level, stage)]
+  ggplot(xy, aes(stage, N, fill = selectMeth)) +
+    geom_col() +
+    geom_text(data = tot, aes(stage, N, label = format(N, big.mark = ",")),
+              inherit.aes = FALSE, vjust = -0.3, size = 2.8) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+    facet_wrap(~level, scales = "free_x") +
+    scale_fill_manual(values = methodColours) +
+    labs(x = "Sampling unit", y = "Records", fill = "Selection method",
+         title = paste0(y, ": selection method of the PSU and SSU records, all hierarchies"))
+}
+yrs <- sort(unique(pa$year))
+knitTabs(yrs, "psuSsuAll", "plotPsuSsuYear(\"%s\")", rep(4, length(yrs)))
+```
+
+### Number sampled where totals are declared {.tabset}
+
+One tab per hierarchy, one panel per year, one pair of bars per sampling unit. `XXnumTotal` and `XXnumSamp` are read once per stratum of a sampling unit under one parent record (for example the FT stratum of one vessel). Only strata with `XXnumTotal` filled are summed. The label above the bars is the number of such strata with a declared total, out of all strata of the unit (n/N). The y axis is on a log scale.
+
+```{r numSampPlot, results = "asis"}
+ns <- su[, .(numTotal = numTotal[1], numSamp = numSamp[1]),
+         by = .(hierarchy, hierarchyNum, year, stage, stageOrder, groupKey, stratumName)]
+ns <- ns[, .(strata = .N, declared = sum(!is.na(numTotal)),
+             Total = sum(numTotal, na.rm = TRUE),
+             Sampled = sum(numSamp[!is.na(numTotal)], na.rm = TRUE)),
+         by = .(hierarchy, hierarchyNum, year, stage, stageOrder)]
+plotNumSamp <- function(h) {
+  xh <- copy(ns[hierarchy == h])
+  xh[, stageF := stageFactor(xh)]
+  xl <- melt(xh, id.vars = c("year", "stageF", "strata", "declared"),
+             measure.vars = c("Total", "Sampled"), variable.name = "number", value.name = "value")
+  top <- max(c(xl$value, 10), na.rm = TRUE) * 3
+  ggplot(xl[value > 0], aes(stageF, value, fill = number)) +
+    geom_col(position = position_dodge(0.8), width = 0.75) +
+    geom_text(aes(label = format(value, big.mark = ",")), position = position_dodge(0.8),
+              vjust = -0.3, size = 2.4) +
+    geom_text(data = unique(xh[, .(year, stageF, strata, declared)]),
+              aes(stageF, top, label = nOfN(declared, strata)), inherit.aes = FALSE, size = 2.4) +
+    scale_y_log10(labels = scales::comma) +
+    scale_x_discrete(drop = FALSE) +
+    scale_fill_manual(values = c(Total = "#9ecae1", Sampled = "#08519c")) +
+    facet_wrap(~year, ncol = 3) +
+    labs(x = "Sampling unit", y = "Number of units (log scale)", fill = "",
+         title = paste0(h, ": declared totals and number sampled by sampling unit and year"),
+         subtitle = "Top label = strata with XXnumTotal declared / strata of the unit")
+}
+hs <- unique(ns[order(hierarchyNum), as.character(hierarchy)])
+knitTabs(hs, "numSamp", "plotNumSamp(\"%s\")",
+         sapply(hs, function(h) figH(uniqueN(ns[hierarchy == h, year]), ncol = 3, perRow = 3)))
+```
+
+### Records by year and sampling unit {.tabset}
+
+One tab per hierarchy. Each panel is one sampling unit in sampling order, the x axis is the year. The label is the number of records of the unit in that year.
+
+```{r yearByUnit, results = "asis"}
+yu <- su[, .N, by = .(hierarchy, hierarchyNum, year, stage, stageOrder, selectMeth)]
+plotYearByUnit <- function(h) {
+  xh <- copy(yu[hierarchy == h])
+  xh[, stageF := stageFactor(xh)]
+  xh[, yearF := factor(year)]
+  tot <- xh[, .(N = sum(N)), by = .(yearF, stageF)]
+  ggplot(xh, aes(yearF, N, fill = selectMeth)) +
+    geom_col() +
+    geom_text(data = tot, aes(yearF, N, label = format(N, big.mark = ",")),
+              inherit.aes = FALSE, vjust = -0.3, size = 2.6) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+    facet_wrap(~stageF, ncol = 3, scales = "free_y") +
+    scale_fill_manual(values = methodColours) +
+    labs(x = "Year", y = "Records", fill = "Selection method",
+         title = paste0(h, ": records by year, sampling unit and selection method"),
+         subtitle = "The y axis differs between panels") +
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5, hjust = 1))
+}
+hs <- unique(yu[order(hierarchyNum), as.character(hierarchy)])
+knitTabs(hs, "yearByUnit", "plotYearByUnit(\"%s\")",
+         sapply(hs, function(h) figH(uniqueN(yu[hierarchy == h, stage]), ncol = 3, perRow = 3)))
+```
+
+## Data overview
+
+```{r overview}
+st <- dcast(su[, .N, by = .(hierarchy, country, year, stage)], hierarchy + country + year ~ stage,
+            value.var = "N", fill = 0)
+ov <- designs[, .(schemes = uniqueN(schemeKey), DE_strata = uniqueN(deKey)),
+              by = .(hierarchy, country, year)]
+ov <- merge(ov, st, by = c("hierarchy", "country", "year"), all.x = TRUE)
+ov <- orderStageCols(ov)
+setorder(ov, hierarchy, country, year)
+showTable(ov, "overview", "Schemes, DE strata and records per stage, by hierarchy, country and year.")
+```
+
+## Sampling scheme definition
+
+**Proposal.** One sampling scheme (design) is identified by `DEsampScheme × SDinstitution × DEyear × DEhierarchy`. The DE records of a scheme are its strata (`DEstratumName`). Different DE records with the same scheme name, institution, year and hierarchy are different strata of one scheme, not different schemes. The first row of the table counts scheme names (name × institution × year) used in more than one hierarchy, which is why the hierarchy is part of the key.
+
+```{r scheme}
+schemeTab <- designs[, .(country = paste(sort(unique(country)), collapse = ","),
+                         hierarchies = paste(sort(unique(as.character(hierarchy))), collapse = ","),
+                         nHierarchies = uniqueN(hierarchy),
+                         schemeTypes = paste(sort(unique(schemeType)), collapse = ","),
+                         nSchemeTypes = uniqueN(schemeType),
+                         DE_strata = uniqueN(deKey)),
+                     by = .(scheme, institution, year, schemeKey)]
+nSch <- nrow(schemeTab)
+schemeNames <- designs[, .(nHierarchies = uniqueN(hierarchy)), by = .(scheme, institution, year)]
+schemeSummary <- data.table(
+  Check = c("Scheme name in more than one hierarchy (name × institution × year)",
+            "More than one DE stratum", "More than one DEsamplingSchemeType"),
+  n = c(sum(schemeNames$nHierarchies > 1), sum(schemeTab$DE_strata > 1),
+        sum(schemeTab$nSchemeTypes > 1)),
+  N = c(nrow(schemeNames), nSch, nSch))
+schemeSummary[, percent := pct(n, N)]
+knitr::kable(schemeSummary, caption = "Schemes (DEsampScheme × SDinstitution × DEyear × DEhierarchy) with more than one DE stratum or scheme type. The first row counts scheme names without the hierarchy.")
+```
+
+### unit_sel
+
+`unit_sel` is the number of selection methods used for one sampling unit (stage, for example FT) within one stratum of one scheme (`DEstratumName`). A `unit_sel` above 1 means the same sampling unit is selected with two or more methods within the same scheme stratum. For example, FT records with SRSWOR and CENSUS in one DE stratum give `unit_sel` = 2 for FT. Strata within the stage itself (`XXstratumName`) do not split the count. Their number is given in `stage_strata`, because different methods in different stage strata can be a deliberate design choice.
+
+```{r unitSel}
+
+usStage <- uu[, .(units = .N, unit_sel_above_1 = sum(unit_sel > 1),
+                  max_unit_sel = max(unit_sel)),
+              by = .(hierarchy, stage, stageOrder)]
+usStage[, unit_sel_above_1_pct := pct(unit_sel_above_1, units)]
+setorder(usStage, hierarchy, stageOrder)
+showTable(usStage[, !"stageOrder"], "unitSelByStage",
+          "Sampling units (scheme × DE stratum × stage) with unit_sel above 1, by hierarchy and stage (n of units).")
+
+usDist <- uu[, .N, by = .(hierarchy, unit_sel)]
+usDist[, Ntot := sum(N), by = hierarchy]
+usDist[, label := nOfNpct(N, Ntot)]
+knitr::kable(dcast(usDist, hierarchy ~ unit_sel, value.var = "label", fill = "0"),
+             caption = "Distribution of unit_sel by hierarchy (columns = number of selection methods, n/N units).")
+
+uSch <- uu[, .(max_unit_sel = max(unit_sel), units_above_1 = sum(unit_sel > 1), units = .N),
+           by = schemeKey]
+schemeTab <- merge(schemeTab, uSch, by = "schemeKey", all.x = TRUE)
+setorder(schemeTab, -max_unit_sel, -DE_strata, scheme, year)
+showTable(schemeTab[, !c("schemeKey", "nHierarchies", "nSchemeTypes")], "schemes",
+          "Schemes with their hierarchy, scheme types, DE strata and the largest unit_sel.")
+
+setorder(uu, -unit_sel, country, scheme, year, hierarchy, stageOrder)
+showTable(uu[unit_sel > 1, !c("schemeKey", "deKey", "stageOrder")], "unitSelAbove1",
+          "Sampling units with more than one selection method within one stratum of one scheme.")
+```
+
+```{r schemeYears}
+acrossYears <- schemeTab[, .(years = uniqueN(year), max_unit_sel = max(max_unit_sel, na.rm = TRUE)),
+                         by = .(country, scheme, institution)]
+setorder(acrossYears, -years, -max_unit_sel)
+showTable(acrossYears, "schemeNamesAcrossYears",
+          "Scheme names per institution: number of years used and the largest unit_sel across those years.")
+```
+
+## Multiple selection methods
+
+A sampling unit is a stage table (VS, FT, FO and so on). `XXunitName` holds the label of each unit, not its type, so it is not used here. Per design and stage, the number of distinct selection methods among its records. Different methods in different strata are allowed in RDBES, so the count within one DE stratum (`unit_sel` above 1) is shown too.
+
+```{r multi}
+ds <- su[, .(nMethods = uniqueN(selectMeth)),
+         by = .(designKey, hierarchy, stage, stageOrder)]
+dsStr <- uu[, .(nMethodsInStratum = max(unit_sel)), by = .(designKey = schemeKey, hierarchy, stage)]
+ds <- merge(ds, dsStr, by = c("designKey", "hierarchy", "stage"))
+
+byStage <- ds[, .(designs = .N,
+                  multiMethod = sum(nMethods > 1),
+                  multiMethodInStratum = sum(nMethodsInStratum > 1)),
+              by = .(hierarchy, stage, stageOrder)]
+byStage[, `:=`(multiMethod_pct = pct(multiMethod, designs),
+               multiMethodInStratum_pct = pct(multiMethodInStratum, designs))]
+setorder(byStage, hierarchy, stageOrder)
+showTable(byStage[, !"stageOrder"], "multiMethodByStage",
+          "Designs with more than one selection method at a stage (n of designs with records at that stage).")
+
+anyD <- ds[, .(multiMethod = any(nMethods > 1),
+               multiMethodInStratum = any(nMethodsInStratum > 1)), by = .(designKey, hierarchy)]
+dsMix <- su[, .(methodsAcross = uniqueN(selectMeth),
+                classes = uniqueN(methodClass[!methodClass %in% c("Other", "Missing")])),
+            by = designKey]
+anyD <- merge(anyD, dsMix, by = "designKey", all.x = TRUE)
+sumD <- function(d) d[, .(designs = .N, multiMethod = sum(multiMethod),
+                          multiMethodInStratum = sum(multiMethodInStratum),
+                          multiMethodAcrossStages = sum(methodsAcross > 1),
+                          mixedClassesAcrossStages = sum(classes > 1))]
+byH <- anyD[, sumD(.SD), by = hierarchy]
+byH[, hierarchy := as.character(hierarchy)]
+# a scheme in more than one hierarchy is counted once in All
+allD <- anyD[, .(multiMethod = any(multiMethod), multiMethodInStratum = any(multiMethodInStratum),
+                 methodsAcross = methodsAcross[1], classes = classes[1]), by = designKey]
+byH <- rbind(byH, sumD(allD)[, hierarchy := "All"], use.names = TRUE)
+byH[, `:=`(multiMethod_pct = pct(multiMethod, designs),
+           multiMethodAcrossStages_pct = pct(multiMethodAcrossStages, designs),
+           mixedClassesAcrossStages_pct = pct(mixedClassesAcrossStages, designs))]
+knitr::kable(byH, caption = "Designs with more than one method at any one stage (within all records and within one stratum), with more than one method across their stages, and mixing method classes across stages.")
+```
+
+```{r multiPlot, fig.height = figH(uniqueN(byStage$hierarchy))}
+x <- melt(byStage, id.vars = c("hierarchy", "stage", "stageOrder", "designs"),
+          measure.vars = c("multiMethod", "multiMethodInStratum"),
+          variable.name = "measure", value.name = "n")
+x[, hierarchyNum := as.integer(hierarchy)]
+x[, xs := stageX(x)]
+ggplot(x, aes(xs, n / designs, fill = measure)) +
+  geom_col(position = position_dodge(0.8), width = 0.75) +
+  geom_text(aes(label = nOfN(n, designs)), position = position_dodge(0.8),
+            vjust = -0.3, size = 2.2) +
+  scale_x_discrete(labels = dropPrefix) +
+  scale_y_continuous(labels = scales::percent, limits = c(0, 1.12)) +
+  facet_wrap(~hierarchy, scales = "free_x", ncol = 3) +
+  labs(x = "Stage", y = "Share of designs", fill = "",
+       title = "Designs with more than one selection method at a stage",
+       subtitle = "Label = designs with more than one / designs with records at the stage")
+```
